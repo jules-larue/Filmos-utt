@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">MyMovies</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="title_home">Home</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="title_popular_films">Populaires</string>
+    <string name="title_favorite">Favoris</string>
+    <string name="hint_search_bar">Recherchez un film…</string>
+    <string name="no_favorite_movies">Vous n\'avez enregistré aucun film.</string>
+
 </resources>
