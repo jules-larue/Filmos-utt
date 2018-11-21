@@ -2,7 +2,13 @@ package com.example.jules.mymovies.util;
 
 public class AppConstants {
 
+    /**
+     * YouTube API key
+     */
+    public static final String YOUTUBE_API_KEY = "AIzaSyAVU1YLHDEGhVBREfIXQ6w5Eg7YFk02Qsc";
+
     public static final String TMDB_API_KEY = "4be036249e60cb50f0fbafd6949f692b";
+
 
     /**
      * The TMDB language parameter value for "French"
@@ -18,4 +24,5 @@ public class AppConstants {
      * Base URL for poster paths
      */
     public static final String TMDB_POSTER_BASE_URL = "http://image.tmdb.org/t/p/w185/";
+
 }

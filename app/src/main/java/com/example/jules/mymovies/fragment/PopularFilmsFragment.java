@@ -64,6 +64,10 @@ public class PopularFilmsFragment extends Fragment {
         mSearchBar = getView().findViewById(R.id.search_bar);
         mProgressBar = getView().findViewById(R.id.popular_films_progress_bar);
 
+        // Set search bar to appear over any other view
+        mSearchBar.bringToFront();
+
+        // Fetch the most popular films
         FetchPopularFilmsTask popularFilmsTask = new FetchPopularFilmsTask(this);
         popularFilmsTask.execute();
     }
@@ -137,8 +141,10 @@ public class PopularFilmsFragment extends Fragment {
             // Create a Date object for the film release date
             SimpleDateFormat releaseDateFormat =
                     new SimpleDateFormat(AppConstants.TMDB_RELEASE_DATE_FORMAT);
+
             try {
-                filmToAdd = new Film(movie.getTitle(),
+                filmToAdd = new Film(movie.getId(),
+                        movie.getTitle(),
                         releaseDateFormat.parse(movie.getReleaseDate()),
                         movie.getPosterPath());
 
@@ -149,10 +155,10 @@ public class PopularFilmsFragment extends Fragment {
             }
         }
 
+        // Create the adapter
         FilmsListAdapter filmsListAdapter =
                 new FilmsListAdapter(getContext(), filmsToDisplay);
         mFilmsList.setAdapter(filmsListAdapter);
         mFilmsList.setLayoutManager(new LinearLayoutManager(getContext()));
     }
-
 }

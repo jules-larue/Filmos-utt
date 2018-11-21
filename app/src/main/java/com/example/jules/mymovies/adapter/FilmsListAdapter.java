@@ -1,6 +1,7 @@
 package com.example.jules.mymovies.adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.RecyclerView.Adapter;
@@ -10,11 +11,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.jules.mymovies.R;
+import com.example.jules.mymovies.activity.FilmDetailsActivity;
 import com.example.jules.mymovies.model.Film;
 import com.example.jules.mymovies.util.AppConstants;
+import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
@@ -39,6 +41,8 @@ public class FilmsListAdapter extends Adapter<FilmsListAdapter.FilmViewHolder> {
      * Example: "17 novembre 2018"
      */
     public static final String RELEASE_DATE_FORMAT = "dd MMMM yyyy";
+
+    public static final String TAG = "FilmsListAdapter";
 
     /**
      * Builds a FilmListAdapter with a context and
@@ -91,17 +95,32 @@ public class FilmsListAdapter extends Adapter<FilmsListAdapter.FilmViewHolder> {
             poster = itemView.findViewById(R.id.film_item_poster);
             title = itemView.findViewById(R.id.film_item_title);
             releaseDate = itemView.findViewById(R.id.film_item_date);
+
+            itemView.setOnClickListener(this);
         }
 
 
         /**
          * Called when user clicks on film item.
          * WIll launch activity with detailed film info (to be coming)
-         * @param v this view
          */
         @Override
         public void onClick(View v) {
-            Toast.makeText(mContext, "Clicked movie " + title.getText().toString(), Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "Clicked film " + mFilms.get(getAdapterPosition()).getTitle());
+
+            // Retrieve the film selected
+            int positionClicked = getAdapterPosition();
+            Film filmClicked = mFilms.get(positionClicked);
+
+            Intent intentFilmDetails = new Intent(mContext, FilmDetailsActivity.class);
+
+            // Transform the film object so that we can pass
+            // it through intent
+            String jsonFilm = new Gson().toJson(filmClicked);
+            intentFilmDetails.putExtra(FilmDetailsActivity.EXTRA_FILM_JSON, jsonFilm);
+
+            // Start activity to display details of the film
+            mContext.startActivity(intentFilmDetails);
         }
     }
 }

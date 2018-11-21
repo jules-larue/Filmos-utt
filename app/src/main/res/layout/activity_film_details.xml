@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/activity_padding"
+    tools:context=".activity.FilmDetailsActivity">
+    
+    <com.makeramen.roundedimageview.RoundedImageView
+        android:id="@+id/activity_film_details_poster"
+        android:layout_width="@dimen/films_details_poster_side"
+        android:layout_height="@dimen/films_details_poster_side"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        android:scaleType="centerCrop"
+        app:riv_corner_radius="@dimen/poster_radius"/>
+    
+    <TextView
+        android:id="@+id/activity_film_details_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:textColor="@color/black"
+        android:textStyle="bold"
+        android:textSize="@dimen/films_details_title_size"
+        app:layout_constraintLeft_toRightOf="@id/activity_film_details_poster"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@id/activity_film_details_poster"/>
+
+    <TextView
+        android:id="@+id/activity_film_details_release_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/films_details_release_date_size"
+        app:layout_constraintTop_toBottomOf="@id/activity_film_details_title"
+        app:layout_constraintLeft_toLeftOf="@id/activity_film_details_title"
+        android:layout_marginTop="8dp"/>
+
+    <com.google.android.youtube.player.YouTubePlayerView
+        android:id="@+id/activity_film_details_trailer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/activity_film_details_poster"
+        android:layout_marginTop="16dp"/>
+
+</android.support.constraint.ConstraintLayout>
