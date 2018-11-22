@@ -61,6 +61,13 @@ public class FilmDetailsActivity extends YouTubeBaseActivity {
     private Film mFilm;
 
     /**
+     * The TextView with a message indicating
+     * that no trailer is found for the movie
+     * to display.
+     */
+    private TextView mTvMessageNoTrailer;
+
+    /**
      * Date format to display for the release date
      * of the film
      */
@@ -86,6 +93,7 @@ public class FilmDetailsActivity extends YouTubeBaseActivity {
         mTvTitle = findViewById(R.id.activity_film_details_title);
         mTvReleaseDate = findViewById(R.id.activity_film_details_release_date);
         mTrailerPlayer = findViewById(R.id.activity_film_details_trailer);
+        mTvMessageNoTrailer = findViewById(R.id.activity_film_details_tv_no_trailer);
 
         // Retrieve film from intent extras
         String jsonFilm = Objects.requireNonNull(getIntent()
@@ -120,6 +128,10 @@ public class FilmDetailsActivity extends YouTubeBaseActivity {
         @Override
         public void onInitializationSuccess(YouTubePlayer.Provider provider, YouTubePlayer youTubePlayer, boolean b) {
             Log.d(TAG, "YouTubePlayer => initialization success");
+            // Show the player
+            showTrailer();
+
+            // Initialize the video
             youTubePlayer.cueVideo(mFilm.getYoutubeKey());
         }
 
@@ -128,6 +140,24 @@ public class FilmDetailsActivity extends YouTubeBaseActivity {
             Log.d(TAG, "YouTubePlayer => initialization failure");
             Toast.makeText(FilmDetailsActivity.this, R.string.toast_cant_load_trailer, Toast.LENGTH_SHORT).show();
         }
+    }
+
+    /**
+     * Displays the YouTube player
+     * and hides the message for 'no trailer'.
+     */
+    private void showTrailer() {
+        mTrailerPlayer.setVisibility(View.VISIBLE);
+        mTvMessageNoTrailer.setVisibility(View.GONE);
+    }
+
+    /**
+     * Displays the message for 'no trailer'
+     * and hides the YouTube player.
+     */
+    private void showMessageNoTrailer() {
+        mTrailerPlayer.setVisibility(View.GONE);
+        mTvMessageNoTrailer.setVisibility(View.VISIBLE);
     }
 
     private class FetchYouTubeKeyTask extends AsyncTask<Void, Void, String> {
@@ -150,10 +180,10 @@ public class FilmDetailsActivity extends YouTubeBaseActivity {
             if (youtubeKeyFound == null) {
                 /*
                  No YouTube key found (so no trailer to show),
-                 we hide the YouTube player
+                 we show an informing message.
                   */
                 Log.d(TAG, "No YouTube key found!");
-                mParentActivity.mTrailerPlayer.setVisibility(View.GONE);
+                showMessageNoTrailer();
             } else {
                 /*
                  Saves the key and initializes the YouTube player that plays the trailer.

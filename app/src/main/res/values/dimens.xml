@@ -11,4 +11,7 @@
     <dimen name="films_details_poster_side">100dp</dimen>
     <dimen name="films_details_title_size">20sp</dimen>
     <dimen name="films_details_release_date_size">14sp</dimen>
+
+    <!-- YouTubePlayerView dimensions -->
+    <dimen name="youtube_player_view_height">110dp</dimen>
 </resources>
