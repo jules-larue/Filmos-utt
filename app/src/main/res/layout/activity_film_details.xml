@@ -15,27 +15,38 @@
         app:layout_constraintLeft_toLeftOf="parent"
         android:scaleType="centerCrop"
         app:riv_corner_radius="@dimen/poster_radius"/>
-    
-    <TextView
-        android:id="@+id/activity_film_details_title"
+
+    <!-- Container for the title and release date.
+    The group of these 2 views will be aligned vertically
+    along to the poster height. -->
+    <LinearLayout
+        android:id="@+id/activity_film_details_layout_title_and_date"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginStart="8dp"
-        android:textColor="@color/black"
-        android:textStyle="bold"
-        android:textSize="@dimen/films_details_title_size"
+        app:layout_constraintTop_toTopOf="@id/activity_film_details_poster"
+        app:layout_constraintBottom_toBottomOf="@id/activity_film_details_poster"
         app:layout_constraintLeft_toRightOf="@id/activity_film_details_poster"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="@id/activity_film_details_poster"/>
+        android:orientation="vertical"
+        android:gravity="center_vertical">
 
-    <TextView
-        android:id="@+id/activity_film_details_release_date"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="@dimen/films_details_release_date_size"
-        app:layout_constraintTop_toBottomOf="@id/activity_film_details_title"
-        app:layout_constraintLeft_toLeftOf="@id/activity_film_details_title"
-        android:layout_marginTop="8dp"/>
+
+        <TextView
+            android:id="@+id/activity_film_details_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:textStyle="bold"
+            android:textSize="@dimen/films_details_title_size"/>
+
+        <TextView
+            android:id="@+id/activity_film_details_release_date"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/films_details_release_date_size"/>
+
+    </LinearLayout>
 
     <com.google.android.youtube.player.YouTubePlayerView
         android:id="@+id/activity_film_details_trailer"
