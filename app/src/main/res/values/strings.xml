@@ -9,5 +9,6 @@
     <string name="hint_search_bar">Recherchez un film…</string>
     <string name="no_favorite_movies">Vous n\'avez enregistré aucun film.</string>
     <string name="toast_cant_load_trailer">Impossible de charger la bande-annonce.</string>
+    <string name="toast_please_input_search">Veuillez saisir une recherche.</string>
 
 </resources>
