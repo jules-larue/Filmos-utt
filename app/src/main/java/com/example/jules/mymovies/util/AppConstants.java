@@ -16,6 +16,12 @@ public class AppConstants {
     public static final String TMDB_PARAMETER_LANGUAGE_FRENCH = "fr";
 
     /**
+     * The TMDB paramter to whether or not
+     * include adult movies in search results
+     */
+    public static final boolean TMDB_PARAMETER_INCLUDE_ADULT_IN_SEARCH = false;
+
+    /**
      * Format of release date in TMDB responses
      */
     public static final String TMDB_RELEASE_DATE_FORMAT = "yyyy-MM-dd";

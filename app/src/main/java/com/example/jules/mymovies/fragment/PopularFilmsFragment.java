@@ -1,5 +1,6 @@
 package com.example.jules.mymovies.fragment;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -11,20 +12,21 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
+import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.example.jules.mymovies.R;
+import com.example.jules.mymovies.activity.QueryResultsActivity;
 import com.example.jules.mymovies.adapter.FilmsListAdapter;
 import com.example.jules.mymovies.model.Film;
 import com.example.jules.mymovies.util.AppConstants;
+import com.example.jules.mymovies.util.MovieUtil;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Objects;
 
 import info.movito.themoviedbapi.TmdbApi;
-import info.movito.themoviedbapi.model.MovieDb;
 import info.movito.themoviedbapi.model.core.MovieResultsPage;
 
 
@@ -66,6 +68,36 @@ public class PopularFilmsFragment extends Fragment {
 
         // Set search bar to appear over any other view
         mSearchBar.bringToFront();
+        mSearchBar.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
+            @Override
+            public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
+                /*
+                Nothing for now. May be implemented in the future
+                if we get time to handle suggestions.
+                 */
+            }
+
+            @Override
+            public void onSearchAction(String currentQuery) {
+                String query = mSearchBar.getQuery()
+                        .trim(); // remove leading and trailing spaces
+
+                // Set proper search bar text
+                mSearchBar.setSearchText(query);
+
+                if (query.isEmpty()) {
+                    // No query
+                    Toast.makeText(getActivity(), R.string.toast_please_input_search, Toast.LENGTH_SHORT).show();
+                } else {
+                    // User has typed a valid query
+                    Intent queryResultsIntent = new Intent(getContext(), QueryResultsActivity.class);
+                    queryResultsIntent.putExtra(QueryResultsActivity.EXTRA_QUERY, query);
+
+                    // Start results activity
+                    Objects.requireNonNull(getContext()).startActivity(queryResultsIntent);
+                }
+            }
+        });
 
         // Fetch the most popular films
         FetchPopularFilmsTask popularFilmsTask = new FetchPopularFilmsTask(this);
@@ -133,27 +165,7 @@ public class PopularFilmsFragment extends Fragment {
          We build a list of Film objects from
          the results (movies) fetched
           */
-        ArrayList<Film> filmsToDisplay = new ArrayList<>();
-
-        Film filmToAdd;
-        for (MovieDb movie : resultsFetched) {
-
-            // Create a Date object for the film release date
-            SimpleDateFormat releaseDateFormat =
-                    new SimpleDateFormat(AppConstants.TMDB_RELEASE_DATE_FORMAT);
-
-            try {
-                filmToAdd = new Film(movie.getId(),
-                        movie.getTitle(),
-                        releaseDateFormat.parse(movie.getReleaseDate()),
-                        movie.getPosterPath());
-
-                // Add the film
-                filmsToDisplay.add(filmToAdd);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        }
+        ArrayList<Film> filmsToDisplay = MovieUtil.mapPageResultsToFilmsList(resultsFetched);
 
         // Create the adapter
         FilmsListAdapter filmsListAdapter =

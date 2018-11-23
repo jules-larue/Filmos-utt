@@ -22,7 +22,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activity.FilmDetailsActivity"></activity>
+        <activity android:name=".activity.FilmDetailsActivity" />
+        <activity android:name=".activity.QueryResultsActivity"></activity>
     </application>
 
 </manifest>
