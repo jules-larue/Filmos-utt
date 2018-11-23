@@ -3,18 +3,20 @@ package com.example.jules.mymovies.activity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.jules.mymovies.R;
 import com.example.jules.mymovies.model.Film;
 import com.example.jules.mymovies.util.AppConstants;
-import com.google.android.youtube.player.YouTubeBaseActivity;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
-import com.google.android.youtube.player.YouTubePlayerView;
+import com.google.android.youtube.player.YouTubePlayerSupportFragment;
 import com.google.gson.Gson;
 import com.makeramen.roundedimageview.RoundedImageView;
 import com.squareup.picasso.Picasso;
@@ -24,16 +26,10 @@ import java.util.List;
 import java.util.Objects;
 
 import info.movito.themoviedbapi.TmdbApi;
-import info.movito.themoviedbapi.model.MovieDb;
 import info.movito.themoviedbapi.model.Video;
 
-/**
- * This activity show the detailed information
- * of a film. It extends the {@link YouTubeBaseActivity}
- * in order to be able to display a YouTube video (for
- * the trailer).
- */
-public class FilmDetailsActivity extends YouTubeBaseActivity {
+
+public class FilmDetailsActivity extends AppCompatActivity {
 
     /**
      * Rounded Image View for the poster
@@ -53,7 +49,13 @@ public class FilmDetailsActivity extends YouTubeBaseActivity {
     /**
      * The YouTube player for the film trailer
      */
-    private YouTubePlayerView mTrailerPlayer;
+    private YouTubePlayerSupportFragment mYouTubePlayer;
+
+    /**
+     * Layout that acts as container for the YouTube player,
+     * used to handle the player (fragment) visibility.
+     */
+    private LinearLayout mYouTubePlayerContainer;
 
     /**
      * The film from of which we display details
@@ -92,7 +94,9 @@ public class FilmDetailsActivity extends YouTubeBaseActivity {
         mRivPoster = findViewById(R.id.activity_film_details_poster);
         mTvTitle = findViewById(R.id.activity_film_details_title);
         mTvReleaseDate = findViewById(R.id.activity_film_details_release_date);
-        mTrailerPlayer = findViewById(R.id.activity_film_details_trailer);
+        mYouTubePlayer = (YouTubePlayerSupportFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.youtube_fragment);
+        mYouTubePlayerContainer = findViewById(R.id.youtube_fragment_container);
         mTvMessageNoTrailer = findViewById(R.id.activity_film_details_tv_no_trailer);
 
         // Retrieve film from intent extras
@@ -118,8 +122,14 @@ public class FilmDetailsActivity extends YouTubeBaseActivity {
          is found, initializes it otherwise.
           */
         FetchYouTubeKeyTask fetchYouTubeKeyTask =
-                new FetchYouTubeKeyTask(mFilm, this);
+                new FetchYouTubeKeyTask(mFilm);
         fetchYouTubeKeyTask.execute();
+
+        // Show action to go to previous activity
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+
+        // Set action bar title
+        getSupportActionBar().setTitle(R.string.activity_film_details_action_bar_title);
 
     }
 
@@ -147,7 +157,7 @@ public class FilmDetailsActivity extends YouTubeBaseActivity {
      * and hides the message for 'no trailer'.
      */
     private void showTrailer() {
-        mTrailerPlayer.setVisibility(View.VISIBLE);
+        mYouTubePlayerContainer.setVisibility(View.VISIBLE);
         mTvMessageNoTrailer.setVisibility(View.GONE);
     }
 
@@ -156,18 +166,16 @@ public class FilmDetailsActivity extends YouTubeBaseActivity {
      * and hides the YouTube player.
      */
     private void showMessageNoTrailer() {
-        mTrailerPlayer.setVisibility(View.GONE);
+        mYouTubePlayerContainer.setVisibility(View.GONE);
         mTvMessageNoTrailer.setVisibility(View.VISIBLE);
     }
 
     private class FetchYouTubeKeyTask extends AsyncTask<Void, Void, String> {
 
         private Film mFilm;
-        private FilmDetailsActivity mParentActivity;
 
-        public FetchYouTubeKeyTask(Film film, FilmDetailsActivity parentActivity) {
+        public FetchYouTubeKeyTask(Film film) {
             mFilm = film;
-            mParentActivity = parentActivity;
         }
 
         @Override
@@ -192,7 +200,7 @@ public class FilmDetailsActivity extends YouTubeBaseActivity {
                   */
                 Log.d(TAG, "YouTube key found: " + youtubeKeyFound);
                 mFilm.setYoutubeKey(youtubeKeyFound);
-                mTrailerPlayer.initialize(AppConstants.YOUTUBE_API_KEY, new OnYouTubePlayerReady());
+                mYouTubePlayer.initialize(AppConstants.YOUTUBE_API_KEY, new OnYouTubePlayerReady());
             }
         }
 
@@ -224,5 +232,25 @@ public class FilmDetailsActivity extends YouTubeBaseActivity {
             // No YouTube trailer found
             return null;
         }
+    }
+
+    /**
+     * This method is used to handle a click
+     * on the "back arrow" in action bar, to
+     * get back to the previous activity.
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()){
+            case android.R.id.home:
+                /*
+                When back button pressed, get
+                back to previous activity (same
+                action than onBackPressed())
+                 */
+                onBackPressed();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

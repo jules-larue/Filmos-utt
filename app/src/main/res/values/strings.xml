@@ -11,4 +11,6 @@
     <string name="toast_cant_load_trailer">Impossible de charger la bande-annonce.</string>
     <string name="no_trailer_for_this_movie">Aucune bande-annonce pour ce film.</string>
 
+    <string name="activity_film_details_action_bar_title">Détails</string>
+
 </resources>

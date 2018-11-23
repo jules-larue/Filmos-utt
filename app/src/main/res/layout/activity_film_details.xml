@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/activity_padding"
-    tools:context=".activity.FilmDetailsActivity">
-    
+    android:padding="@dimen/activity_padding">
+
     <com.makeramen.roundedimageview.RoundedImageView
         android:id="@+id/activity_film_details_poster"
         android:layout_width="@dimen/films_details_poster_side"
@@ -48,14 +47,24 @@
 
     </LinearLayout>
 
-    <com.google.android.youtube.player.YouTubePlayerView
-        android:id="@+id/activity_film_details_trailer"
+    <!-- Container for the YouTube fragment to make it
+    visible / invisible -->
+    <LinearLayout
+        android:id="@+id/youtube_fragment_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintTop_toBottomOf="@id/activity_film_details_poster"
         android:layout_marginTop="16dp"
-        android:visibility="gone"/>
+        android:visibility="gone">
 
+        <fragment
+            android:id="@+id/youtube_fragment"
+            android:name="com.google.android.youtube.player.YouTubePlayerSupportFragment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+    
     <TextView
         android:id="@+id/activity_film_details_tv_no_trailer"
         android:layout_width="match_parent"
