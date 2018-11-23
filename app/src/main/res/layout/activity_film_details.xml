@@ -64,7 +64,7 @@
             android:layout_height="wrap_content"/>
 
     </LinearLayout>
-    
+
     <TextView
         android:id="@+id/activity_film_details_tv_no_trailer"
         android:layout_width="match_parent"
