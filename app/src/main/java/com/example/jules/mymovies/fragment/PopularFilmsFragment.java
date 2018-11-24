@@ -8,6 +8,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,7 @@ import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.example.jules.mymovies.R;
 import com.example.jules.mymovies.activity.QueryResultsActivity;
 import com.example.jules.mymovies.adapter.FilmsListAdapter;
+import com.example.jules.mymovies.listener.OnLoadMoreListener;
 import com.example.jules.mymovies.model.Film;
 import com.example.jules.mymovies.util.AppConstants;
 import com.example.jules.mymovies.util.MovieUtil;
@@ -52,6 +54,22 @@ public class PopularFilmsFragment extends Fragment {
      * The progress bar when films are being fetched
      */
     private ProgressBar mProgressBar;
+
+    /**
+     * Listener to handle endless scrolling
+     * for the films RecyclerView.
+     */
+    private OnLoadMoreListener mOnLoadMoreFilmsListener;
+
+    /**
+     * The last page of films fetched from the API.
+     */
+    private MovieResultsPage mLastPageDisplayed;
+
+    /**
+     * Adapter for the films to display
+     */
+    private FilmsListAdapter mFilmsAdapter;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -99,44 +117,108 @@ public class PopularFilmsFragment extends Fragment {
             }
         });
 
-        // Fetch the most popular films
-        FetchPopularFilmsTask popularFilmsTask = new FetchPopularFilmsTask(this);
-        popularFilmsTask.execute();
+        mOnLoadMoreFilmsListener = new OnLoadMoreListener() {
+
+            /**
+             * Called when we reach the end of the
+             * RecyclerView when scrolling. We fetch
+             * the next page of popular films from the API.
+             */
+            @Override
+            public void onLoadMore() {
+                int nextPage = mLastPageDisplayed.getPage() + 1;
+                int totalPages = mLastPageDisplayed.getTotalPages();
+
+                // Check we are NOT at the last page
+                if (nextPage <= totalPages) {
+                    // Fetch the next page of films
+                    FetchPopularFilmsTask fetchPopularFilmsTask = new FetchPopularFilmsTask((PopularFilmsFragment.this));
+                    fetchPopularFilmsTask.execute(nextPage);
+                }
+            }
+        };
+
+        /*
+         Adapter initialization.
+         /!\ Create instance of FilmsListAdapter after
+         call to setLayoutManager(new LinearLayoutManager(getContext()))
+          */
+        mFilmsList.setLayoutManager(new LinearLayoutManager(getContext()));
+        mFilmsAdapter = new FilmsListAdapter(getContext(), mFilmsList);
+        mFilmsAdapter.setOnLoadMoreListener(mOnLoadMoreFilmsListener);
+        mFilmsList.setAdapter(mFilmsAdapter);
+
+        // Fetch the first page of most popular films
+        FetchPopularFilmsTask fetchPopularFilmsTask = new FetchPopularFilmsTask(this);
+        fetchPopularFilmsTask.execute(1);
     }
 
-    private static class FetchPopularFilmsTask extends AsyncTask<Void, Void, MovieResultsPage> {
+    private static class FetchPopularFilmsTask extends AsyncTask<Integer, Void, MovieResultsPage> {
 
         /**
          * This task is launched from that fragment
          */
         private PopularFilmsFragment mParentFragment;
 
-        public FetchPopularFilmsTask(PopularFilmsFragment parentFragment) {
+        /**
+         * TMDB API client instance
+         */
+        private TmdbApi mApi;
+
+        FetchPopularFilmsTask(PopularFilmsFragment parentFragment) {
             mParentFragment = parentFragment;
         }
 
         @Override
-        protected void onPreExecute() {
-            // We show that films are being fetched...
-            mParentFragment.showLoadingWidget();
-        }
+        protected MovieResultsPage doInBackground(Integer... args) {
+            // Get the page number to fetch
+            int pageNumber = args[0];
 
-        @Override
-        protected MovieResultsPage doInBackground(Void... voids) {
-            // Create API client instance
-            TmdbApi api = new TmdbApi(AppConstants.TMDB_API_KEY);
+            if (mApi == null) {
+                /*
+                Not in constructor because it uses network
+                so we must place this statement in doInBackground
+                which is not run on Main UI Thread.
+                 */
+                mApi = new TmdbApi(AppConstants.TMDB_API_KEY);
+            }
 
             /*
-             Get the popular movies from API.
-             Here we get movies in french, and first page only (20 results)
+             Get the popular movies from API. Here we get movies in french.
+             The result is stored as the last page of results fetched.
               */
-            return api.getMovies()
-                    .getPopularMovies(AppConstants.TMDB_PARAMETER_LANGUAGE_FRENCH, 1);
+            mParentFragment.mLastPageDisplayed = mApi.getMovies()
+                    .getPopularMovies(AppConstants.TMDB_PARAMETER_LANGUAGE_FRENCH, pageNumber);
+
+            return mParentFragment.mLastPageDisplayed;
         }
 
         @Override
         protected void onPostExecute(MovieResultsPage movieDbs) {
-            mParentFragment.onFilmsFetched(movieDbs);
+            onFilmsFetched(movieDbs);
+        }
+
+        /**
+         * This method is called once all the
+         * movie have been fetched.
+         * Basically, it converts the results into a list
+         * of {@link Film} objects and updates the RecyclerView adapter.
+         * @param resultsFetched the results that have just been fetched
+         */
+        private void onFilmsFetched(MovieResultsPage resultsFetched) {
+            mParentFragment.hideLoadingWidget();
+
+            /*
+             We build a list of Film objects from
+             the results (movies) fetched
+            */
+            ArrayList<Film> filmsFetched = MovieUtil.mapPageResultsToFilmsList(resultsFetched);
+            Log.d("bababa", filmsFetched.size()+"");
+
+            // Update the adapter
+            mParentFragment.mFilmsAdapter.addFilms(filmsFetched);
+            mParentFragment.mFilmsAdapter.notifyDataSetChanged();
+            mParentFragment.mFilmsAdapter.setLoaded();
         }
     }
 
@@ -150,27 +232,5 @@ public class PopularFilmsFragment extends Fragment {
         mFilmsList.setVisibility(View.VISIBLE);
     }
 
-    /**
-     * This method is called once all the
-     * movie have been fetched.
-     * We hide the progress bar as no more fetch
-     * work is in progress and we update our adapter,
-     * so our films will be shown.
-     * @param resultsFetched the results that have just been fetched
-     */
-    public void onFilmsFetched(MovieResultsPage resultsFetched) {
-        hideLoadingWidget();
 
-        /*
-         We build a list of Film objects from
-         the results (movies) fetched
-          */
-        ArrayList<Film> filmsToDisplay = MovieUtil.mapPageResultsToFilmsList(resultsFetched);
-
-        // Create the adapter
-        FilmsListAdapter filmsListAdapter =
-                new FilmsListAdapter(getContext(), filmsToDisplay);
-        mFilmsList.setAdapter(filmsListAdapter);
-        mFilmsList.setLayoutManager(new LinearLayoutManager(getContext()));
-    }
 }
