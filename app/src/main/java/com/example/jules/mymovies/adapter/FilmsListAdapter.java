@@ -98,7 +98,6 @@ public class FilmsListAdapter extends Adapter<RecyclerView.ViewHolder> {
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        Log.d("bababa", "onCreateViewHolder");
         View view;
         RecyclerView.ViewHolder itemViewHolder;
         if (viewType == VIEW_TYPE_FILM) {
@@ -167,8 +166,6 @@ public class FilmsListAdapter extends Adapter<RecyclerView.ViewHolder> {
 
         // Append a null for Loading View
         mFilms.add(null);
-
-        Log.d("bababa", "addFilms: " + mFilms.size());
     }
 
     class FilmViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {

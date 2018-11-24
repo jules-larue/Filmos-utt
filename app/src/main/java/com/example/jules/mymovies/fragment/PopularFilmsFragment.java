@@ -213,7 +213,6 @@ public class PopularFilmsFragment extends Fragment {
              the results (movies) fetched
             */
             ArrayList<Film> filmsFetched = MovieUtil.mapPageResultsToFilmsList(resultsFetched);
-            Log.d("bababa", filmsFetched.size()+"");
 
             // Update the adapter
             mParentFragment.mFilmsAdapter.addFilms(filmsFetched);

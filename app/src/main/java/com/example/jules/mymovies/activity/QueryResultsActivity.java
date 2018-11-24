@@ -11,6 +11,7 @@ import android.widget.ProgressBar;
 
 import com.example.jules.mymovies.R;
 import com.example.jules.mymovies.adapter.FilmsListAdapter;
+import com.example.jules.mymovies.listener.OnLoadMoreListener;
 import com.example.jules.mymovies.model.Film;
 import com.example.jules.mymovies.util.AppConstants;
 import com.example.jules.mymovies.util.MovieUtil;
@@ -28,16 +29,20 @@ public class QueryResultsActivity extends AppCompatActivity {
     private ProgressBar mProgressBar;
 
     /**
-     * The page of results that is currently
-     * displayed.
+     * Listener when we reach the end of the films list
+     * while scrolling.
      */
-    private MovieResultsPage mCurrentPage;
+    private OnLoadMoreListener mOnLoadMoreResultsListener;
 
     /**
-     * A reference to the TMDB API
-     * to perform requests.
+     * Adapter for the list of films.
      */
-    private TmdbApi mApi;
+    private FilmsListAdapter mFilmsAdapter;
+
+    /**
+     * The last page of results fetched from the API.
+     */
+    private MovieResultsPage mLastPageFetched;
 
     /**
      * Extra intent parameter to pass the
@@ -54,7 +59,7 @@ public class QueryResultsActivity extends AppCompatActivity {
         mProgressBar = findViewById(R.id.activity_film_results_progress_bar);
 
         // Get user query
-        String query = Objects.requireNonNull(getIntent().getExtras())
+        final String query = Objects.requireNonNull(getIntent().getExtras())
                 .getString(EXTRA_QUERY);
 
         // Display back arrow
@@ -63,39 +68,58 @@ public class QueryResultsActivity extends AppCompatActivity {
         // Set user query as action bar title
         getSupportActionBar().setTitle(query);
 
-        // Fetch results
+        mOnLoadMoreResultsListener = new OnLoadMoreListener() {
+            @Override
+            public void onLoadMore() {
+                int nextPage = mLastPageFetched.getPage() + 1;
+                int totalPages = mLastPageFetched.getTotalPages();
+
+                // Check we are NOT at the last page
+                if (nextPage <= totalPages) {
+                    // Fetch the next page of films
+                    FetchResultsTask fetchPopularFilmsTask = new FetchResultsTask();
+                    fetchPopularFilmsTask.execute(query, nextPage);
+                }
+            }
+        };
+
+        /*
+         Adapter initialization.
+         /!\ Create instance of FilmsListAdapter after
+         call to setLayoutManager(new LinearLayoutManager(getContext()))
+          */
+        mRvResults.setLayoutManager(new LinearLayoutManager(this));
+        mFilmsAdapter = new FilmsListAdapter(this, mRvResults);
+        mFilmsAdapter.setOnLoadMoreListener(mOnLoadMoreResultsListener);
+        mRvResults.setAdapter(mFilmsAdapter);
+
+        // Fetch first page of results
         FetchResultsTask fetchResultsTask = new FetchResultsTask();
-        fetchResultsTask.execute(query);
+        fetchResultsTask.execute(query, 1);
     }
 
     /**
-     * This class fetches the movie results corresponding
-     * to the user query, and updates the UI to show the
-     * progress of the task.
+     * This class fetches one specific page of the movie
+     * results corresponding to the user query.
      */
-    private class FetchResultsTask extends AsyncTask<String, Void, MovieResultsPage> {
+    private class FetchResultsTask extends AsyncTask<Object, Void, MovieResultsPage> {
 
         @Override
-        protected void onPreExecute() {
-            // Show that task is in progress
-            showProgress();
-        }
+        protected MovieResultsPage doInBackground(Object... args) {
+            // args = { query (String), pageNumber (int)}
+            String query = (String) args[0];
+            int pageNumber = (int) args[1];
 
-        @Override
-        protected MovieResultsPage doInBackground(String... args) {
-            // Get the query from the arguments
-            String query = args[0];
-
-            mApi = new TmdbApi(AppConstants.TMDB_API_KEY);
+            TmdbApi api = new TmdbApi(AppConstants.TMDB_API_KEY);
 
             // Current page is the first one for now
-            mCurrentPage = mApi.getSearch().searchMovie(query,
+            mLastPageFetched = api.getSearch().searchMovie(query,
                     null, // year does not matter
                     AppConstants.TMDB_PARAMETER_LANGUAGE_FRENCH, // results in french
                     AppConstants.TMDB_PARAMETER_INCLUDE_ADULT_IN_SEARCH, // include adult movies ?
-                    1); // 1st page
+                    pageNumber);
 
-            return mCurrentPage;
+            return mLastPageFetched;
         }
 
         @Override
@@ -138,9 +162,9 @@ public class QueryResultsActivity extends AppCompatActivity {
         ArrayList<Film> films = MovieUtil.mapPageResultsToFilmsList(resultsPage);
 
         // Set the adapter for films RecyclerView
-        FilmsListAdapter filmsAdapter = new FilmsListAdapter(this, films);
-        mRvResults.setAdapter(filmsAdapter);
-        mRvResults.setLayoutManager(new LinearLayoutManager(this));
+        mFilmsAdapter.addFilms(films);
+        mFilmsAdapter.notifyDataSetChanged();
+        mFilmsAdapter.setLoaded();
 
         // Hide progress (to show the list)
         hideProgress();
