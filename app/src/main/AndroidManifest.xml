@@ -15,6 +15,7 @@
         tools:ignore="GoogleAppIndexingWarning">
         <activity
             android:name=".activity.MainActivity"
+            android:screenOrientation="portrait"
             android:label="@string/title_activity_main">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -22,8 +23,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activity.FilmDetailsActivity" />
-        <activity android:name=".activity.QueryResultsActivity"></activity>
+        <activity android:name=".activity.FilmDetailsActivity"
+            android:screenOrientation="portrait" />
+        <activity android:name=".activity.QueryResultsActivity"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>
