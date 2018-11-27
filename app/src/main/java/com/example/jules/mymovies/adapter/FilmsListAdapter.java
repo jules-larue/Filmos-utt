@@ -19,6 +19,7 @@ import com.example.jules.mymovies.activity.FilmDetailsActivity;
 import com.example.jules.mymovies.listener.OnLoadMoreListener;
 import com.example.jules.mymovies.model.Film;
 import com.example.jules.mymovies.util.AppConstants;
+import com.example.jules.mymovies.util.MeasuresConverter;
 import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 
@@ -40,10 +41,21 @@ public class FilmsListAdapter extends Adapter<RecyclerView.ViewHolder> {
     private Context mContext;
 
     private boolean isLoading;
+
     private int visibleThreshold = 5;
+
     private int lastVisibleItem;
+
     private int totalItemCount;
+
     private RecyclerView mRecyclerView;
+
+    /**
+     * Top padding value for the first item
+     * of the list (in dp).
+     * Default value is 0dp.
+     */
+    private int mFirstItemTopPadding = 0;
 
     /**
      * The date format to display for films release date.
@@ -53,14 +65,19 @@ public class FilmsListAdapter extends Adapter<RecyclerView.ViewHolder> {
     public static final String RELEASE_DATE_FORMAT = "dd MMMM yyyy";
 
     /**
-     * View type for Film item.
+     * View type for regular Film item.
      */
-    private static final int VIEW_TYPE_FILM = 0;
+    private static final int VIEW_TYPE_STANDARD_FILM = 0;
+
+    /**
+     * View type for the first item of the list
+     */
+    private static final int VIEW_TYPE_FIRST_FILM = 1;
 
     /**
      * View type for loading item.
      */
-    private static final int VIEW_TYPE_LOADING = 1;
+    private static final int VIEW_TYPE_LOADING = 2;
 
     private OnLoadMoreListener mOnLoadMoreListener;
 
@@ -100,10 +117,22 @@ public class FilmsListAdapter extends Adapter<RecyclerView.ViewHolder> {
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view;
         RecyclerView.ViewHolder itemViewHolder;
-        if (viewType == VIEW_TYPE_FILM) {
+
+        if (viewType == VIEW_TYPE_FIRST_FILM || viewType == VIEW_TYPE_STANDARD_FILM) {
+            // Film item
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.film_list_item, parent, false);
+
+            if (viewType == VIEW_TYPE_FIRST_FILM) {
+                // First film only, specific top padding
+                int firstItemTopPadding = MeasuresConverter.dpToPx(mContext.getResources(), mFirstItemTopPadding);
+                view.setPadding(view.getPaddingLeft(),
+                        firstItemTopPadding,
+                        view.getPaddingRight(),
+                        view.getPaddingBottom());
+            }
             itemViewHolder = new FilmViewHolder(view);
+
         } else { // VIEW_TYPE_LOADING
             view = LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.loading_list_item, parent, false);
@@ -140,7 +169,14 @@ public class FilmsListAdapter extends Adapter<RecyclerView.ViewHolder> {
 
     @Override
     public int getItemViewType(int position) {
-        return (mFilms.get(position) == null) ? VIEW_TYPE_LOADING : VIEW_TYPE_FILM;
+        if (position == 0) {
+            // First item may have specific padding
+            return VIEW_TYPE_FIRST_FILM;
+        } else if (position == mFilms.size() - 1) {
+            return VIEW_TYPE_LOADING;
+        } else {
+            return VIEW_TYPE_STANDARD_FILM;
+        }
     }
 
     @Override
@@ -150,6 +186,10 @@ public class FilmsListAdapter extends Adapter<RecyclerView.ViewHolder> {
 
     public void setOnLoadMoreListener(OnLoadMoreListener onLoadMoreListener) {
         mOnLoadMoreListener = onLoadMoreListener;
+    }
+
+    public void setFirstItemTopPadding(int dpValue) {
+        mFirstItemTopPadding = dpValue;
     }
 
     /**

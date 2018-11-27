@@ -8,7 +8,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -70,6 +69,12 @@ public class PopularFilmsFragment extends Fragment {
      * Adapter for the films to display
      */
     private FilmsListAdapter mFilmsAdapter;
+
+    /**
+     * Top padding value (in dp) for the first films RecyclerView
+     * item to be displayed under the FloatingSearchView nicely.
+     */
+    public static final int FIRST_LIST_ITEM_TOP_PADDING = 92;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -145,6 +150,7 @@ public class PopularFilmsFragment extends Fragment {
           */
         mFilmsList.setLayoutManager(new LinearLayoutManager(getContext()));
         mFilmsAdapter = new FilmsListAdapter(getContext(), mFilmsList);
+        mFilmsAdapter.setFirstItemTopPadding(FIRST_LIST_ITEM_TOP_PADDING);
         mFilmsAdapter.setOnLoadMoreListener(mOnLoadMoreFilmsListener);
         mFilmsList.setAdapter(mFilmsAdapter);
 
