@@ -37,7 +37,7 @@ public class MovieUtil {
                 singleFilmObject = new Film(
                         movieDbResult.getId(),
                         movieDbResult.getTitle(),
-                        releaseDate, // date to convert
+                        releaseDate,
                         movieDbResult.getPosterPath());
 
                 filmObjects.add(singleFilmObject);

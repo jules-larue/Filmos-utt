@@ -1,38 +1,49 @@
 package com.example.jules.mymovies.model;
 
+import org.greenrobot.greendao.annotation.Entity;
+import org.greenrobot.greendao.annotation.Id;
+import org.greenrobot.greendao.annotation.NotNull;
+
 import java.util.Date;
+import org.greenrobot.greendao.annotation.Generated;
 
 /**
  * Represents the films that we
  * manipulate in the application.
  */
+@Entity
 public class Film {
 
     /**
-     * Unique identifier of the film
+     * Unique API identifier for the movie.
+     * This attribute is also the primary key
+     * for this table in local database.
      */
-    private int tmdbId;
+    @Id
+    private int id;
 
     /**
      * Title of the film
      */
+    @NotNull
     private String title;
 
     /**
      * Release date of the film
      */
-
+    @NotNull
     private Date releaseDate;
 
     /**
      * The remote URL of the poster
      */
+    @NotNull
     private String posterUrl;
 
     /**
      * The YouTube key for the trailer.
      * This value may be null if no YouTube key
-     *
+     * is found in the TMDB API.
      */
     private String youtubeKey;
 
@@ -61,19 +72,33 @@ public class Film {
         this.youtubeKey = youtubeKey;
     }
 
-    public Film(int tmdbId, String title, Date releaseDate, String posterUrl) {
-        this.tmdbId = tmdbId;
+    public Film(int id, String title, Date releaseDate, String posterUrl) {
+        this.id = id;
         this.title = title;
         this.releaseDate = releaseDate;
         this.posterUrl = posterUrl;
     }
 
-    public int getTmdbId() {
-        return tmdbId;
+    @Generated(hash = 298382474)
+    public Film(int id, @NotNull String title, @NotNull Date releaseDate,
+            @NotNull String posterUrl, String youtubeKey) {
+        this.id = id;
+        this.title = title;
+        this.releaseDate = releaseDate;
+        this.posterUrl = posterUrl;
+        this.youtubeKey = youtubeKey;
     }
 
-    public void setTmdbId(int tmdbId) {
-        this.tmdbId = tmdbId;
+    @Generated(hash = 1658281933)
+    public Film() {
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getTitle () {

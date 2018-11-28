@@ -180,7 +180,7 @@ public class FilmDetailsActivity extends AppCompatActivity {
 
         @Override
         protected String doInBackground(Void... voids) {
-            return getYoutubeKey(mFilm.getTmdbId());
+            return getYoutubeKey(mFilm.getId());
         }
 
         @Override
@@ -209,17 +209,17 @@ public class FilmDetailsActivity extends AppCompatActivity {
          * YouTube trailer found, amongst all the trailers
          * returned by the TMDB API for a specific movie.
          * If no YouTube trailer is found, null is returned.
-         * @param tmdbFilmId the TMDB identifier of the film
-         *                   we want to retrieve the trailer
-         *                   YouTube key of.
+         * @param filmId the id of the movie used by the
+         *               API to find uniquely identify it.
          * @return the YouTube key (a String) of the first
          *         YouTube trailer found, or null if we
          *         don't find any YouTube trailer.
          */
         @Nullable
-        private String getYoutubeKey(int tmdbFilmId) {
+        private String getYoutubeKey(int filmId) {
             TmdbApi api = new TmdbApi(AppConstants.TMDB_API_KEY);
-            List<Video> trailers = api.getMovies().getVideos(tmdbFilmId, AppConstants.TMDB_PARAMETER_LANGUAGE_FRENCH);
+            List<Video> trailers = api.getMovies().getVideos(filmId,
+                    AppConstants.TMDB_PARAMETER_LANGUAGE_FRENCH);
 
             for (Video trailer : trailers) {
                 if (trailer.getSite().equalsIgnoreCase("youtube")) {
