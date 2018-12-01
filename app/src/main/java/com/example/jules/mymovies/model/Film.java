@@ -6,6 +6,7 @@ import org.greenrobot.greendao.annotation.NotNull;
 
 import java.util.Date;
 import org.greenrobot.greendao.annotation.Generated;
+import org.greenrobot.greendao.annotation.Property;
 
 /**
  * Represents the films that we
@@ -20,7 +21,8 @@ public class Film {
      * for this table in local database.
      */
     @Id
-    private int id;
+    @Property(nameInDb = "_id")
+    private Long id;
 
     /**
      * Title of the film
@@ -72,15 +74,15 @@ public class Film {
         this.youtubeKey = youtubeKey;
     }
 
-    public Film(int id, String title, Date releaseDate, String posterUrl) {
+    public Film(Long id, String title, Date releaseDate, String posterUrl) {
         this.id = id;
         this.title = title;
         this.releaseDate = releaseDate;
         this.posterUrl = posterUrl;
     }
 
-    @Generated(hash = 298382474)
-    public Film(int id, @NotNull String title, @NotNull Date releaseDate,
+    @Generated(hash = 1002153983)
+    public Film(Long id, @NotNull String title, @NotNull Date releaseDate,
             @NotNull String posterUrl, String youtubeKey) {
         this.id = id;
         this.title = title;
@@ -93,11 +95,11 @@ public class Film {
     public Film() {
     }
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 

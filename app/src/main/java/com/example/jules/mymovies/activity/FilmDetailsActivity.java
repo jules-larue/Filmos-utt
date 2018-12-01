@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -12,8 +13,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.jules.mymovies.R;
+import com.example.jules.mymovies.model.DaoSession;
 import com.example.jules.mymovies.model.Film;
+import com.example.jules.mymovies.model.FilmDao;
 import com.example.jules.mymovies.util.AppConstants;
+import com.example.jules.mymovies.util.FilmsDatabase;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerSupportFragment;
@@ -82,6 +86,18 @@ public class FilmDetailsActivity extends AppCompatActivity {
     public static final String EXTRA_FILM_JSON = "film";
 
     /**
+     * Resource id of the icon to display when
+     * the film is saved in local database.
+     */
+    public static final int ICON_ID_FILM_IN_FAVORITES = R.drawable.baseline_favorite_white_24;
+
+    /**
+     * Resource id of the icon to display when
+     * the film is not saved in local database.
+     */
+    public static final int ICON_ID_FILM_NOT_IN_FAVORITES = R.drawable.baseline_favorite_border_white_24;
+
+    /**
      * TAG for debug logs
      */
     public static final String TAG = "YouTubePlayerDebug";
@@ -130,7 +146,6 @@ public class FilmDetailsActivity extends AppCompatActivity {
 
         // Set action bar title
         getSupportActionBar().setTitle(R.string.activity_film_details_action_bar_title);
-
     }
 
     private class OnYouTubePlayerReady implements YouTubePlayer.OnInitializedListener {
@@ -180,7 +195,7 @@ public class FilmDetailsActivity extends AppCompatActivity {
 
         @Override
         protected String doInBackground(Void... voids) {
-            return getYoutubeKey(mFilm.getId());
+            return getYoutubeKey(Math.toIntExact(mFilm.getId()));
         }
 
         @Override
@@ -235,6 +250,105 @@ public class FilmDetailsActivity extends AppCompatActivity {
     }
 
     /**
+     * Callback called when user clicks
+     * on the 'favorite' menu item.
+     * If the film is in the user's favorite
+     * movies database, delete it from it.
+     * Otherwise, save it.
+     * @param favoriteMenuItem a reference the favorite
+     *                         menu item that user clicked.
+     */
+    private void handleFavoriteItemClick(MenuItem favoriteMenuItem) {
+        new HandleFavoriteItemClickTask().execute(favoriteMenuItem);
+    }
+
+
+    private class SetFavoriteIconTask extends AsyncTask<Object, Void, Boolean> {
+
+        /**
+         * Reference to the 'favorite' menu item
+         * to be able to change its icon.
+         */
+        private MenuItem mFavoriteMenuItem;
+
+        @Override
+        protected Boolean doInBackground(Object[] args) {
+            mFavoriteMenuItem = (MenuItem) args[0];
+
+            DaoSession daoSession = FilmsDatabase.getDaoSession(FilmDetailsActivity.this);
+            FilmDao filmDao = daoSession.getFilmDao();
+            return filmDao.load(mFilm.getId()) != null;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean isFilmSaved) {
+            int newFavoriteItemIcon = getFavoriteIconIdToDisplay(isFilmSaved);
+            mFavoriteMenuItem.setIcon(newFavoriteItemIcon);
+        }
+    }
+
+
+    private class HandleFavoriteItemClickTask extends AsyncTask<Object, Void, Boolean> {
+
+        private MenuItem mFavoriteIcon;
+
+        @Override
+        protected Boolean doInBackground(Object[] args) {
+            mFavoriteIcon = (MenuItem) args[0];
+
+            DaoSession daoSession = FilmsDatabase.getDaoSession(FilmDetailsActivity.this);
+            FilmDao filmDao = daoSession.getFilmDao();
+            Film filmDisplayed = FilmDetailsActivity.this.mFilm;
+            Film queryResult = filmDao.load(filmDisplayed.getId());
+            boolean isFilmSaved = queryResult != null;
+            if (isFilmSaved) {
+                // Film already saved, delete it from database.
+                filmDao.deleteByKey(queryResult.getId());
+            } else {
+                // Film not in database, insert it.
+                filmDao.insert(mFilm);
+            }
+
+            return !isFilmSaved;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean isFilmSaved) {
+            int newIconId = getFavoriteIconIdToDisplay(isFilmSaved);
+            mFavoriteIcon.setIcon(newIconId);
+        }
+    }
+
+
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.film_details_action_bar, menu);
+
+        MenuItem favoriteItem = menu.findItem(R.id.item_favorite);
+
+        // Init 'favorite' icon
+        new SetFavoriteIconTask().execute(favoriteItem);
+
+        return true;
+    }
+
+    /**
+     * Returns the correct resource id for the
+     * favorite icon to display, depending on
+     * whether the film that we display is saved
+     * int he database or not.
+     * @param isFilmSaved true if the film is saved
+     *                    in the database, false otherwise.
+     */
+    private int getFavoriteIconIdToDisplay(boolean isFilmSaved) {
+        return (isFilmSaved) ?
+                ICON_ID_FILM_IN_FAVORITES :
+                ICON_ID_FILM_NOT_IN_FAVORITES;
+    }
+
+    /**
      * This method is used to handle a click
      * on the "back arrow" in action bar, to
      * get back to the previous activity.
@@ -249,6 +363,14 @@ public class FilmDetailsActivity extends AppCompatActivity {
                 action than onBackPressed())
                  */
                 onBackPressed();
+                return true;
+
+            case R.id.item_favorite:
+                /*
+                When favorite icon pressed, add
+                or delete the film from favorite
+                 */
+                handleFavoriteItemClick(item);
                 return true;
         }
         return super.onOptionsItemSelected(item);

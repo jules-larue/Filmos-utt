@@ -35,7 +35,7 @@ public class MovieUtil {
 
                 // Create the film object
                 singleFilmObject = new Film(
-                        movieDbResult.getId(),
+                        Long.valueOf(movieDbResult.getId()),
                         movieDbResult.getTitle(),
                         releaseDate,
                         movieDbResult.getPosterPath());
