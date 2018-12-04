@@ -13,5 +13,7 @@
     <string name="activity_film_details_action_bar_title">Détails</string>
     <string name="toast_please_input_search">Veuillez saisir une recherche.</string>
     <string name="menu_item_favorite_title">Favoris</string>
+    <string name="snackbar_text_film_add_to_favorites">Film ajouté aux favoris.</string>
+    <string name="snackbar_text_film_deleted_from_favorites">Film supprimé des favoris.</string>
 
 </resources>

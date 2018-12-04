@@ -1,6 +1,7 @@
 package com.example.jules.mymovies.adapter;
 
-import android.content.Context;
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
@@ -10,12 +11,15 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.jules.mymovies.R;
 import com.example.jules.mymovies.activity.FilmDetailsActivity;
+import com.example.jules.mymovies.asynctask.HandleFavoriteItemClickTask;
+import com.example.jules.mymovies.asynctask.SetFavoriteIconTask;
 import com.example.jules.mymovies.listener.OnLoadMoreListener;
 import com.example.jules.mymovies.model.Film;
 import com.example.jules.mymovies.util.AppConstants;
@@ -36,9 +40,9 @@ public class FilmsListAdapter extends Adapter<RecyclerView.ViewHolder> {
     private ArrayList<Film> mFilms;
 
     /**
-     * The context of the adapter
+     * The activity that uses this adapter.
      */
-    private Context mContext;
+    private Activity mParentActivity;
 
     private boolean isLoading;
 
@@ -79,13 +83,18 @@ public class FilmsListAdapter extends Adapter<RecyclerView.ViewHolder> {
      */
     private static final int VIEW_TYPE_LOADING = 2;
 
+    private static final int ICON_FILM_IN_FAVORITES = R.drawable.baseline_favorite_black_36;
+
+
+    private static final int ICON_FILM_NOT_IN_FAVORITES = R.drawable.baseline_favorite_border_black_36;
+
     private OnLoadMoreListener mOnLoadMoreListener;
 
     public static final String TAG = "FilmsListAdapter";
 
 
-    public FilmsListAdapter(Context context, RecyclerView recyclerView) {
-        mContext = context;
+    public FilmsListAdapter(Activity parentActivity, RecyclerView recyclerView) {
+        mParentActivity = parentActivity;
         mRecyclerView = recyclerView;
         mFilms = new ArrayList<>();
 
@@ -107,11 +116,6 @@ public class FilmsListAdapter extends Adapter<RecyclerView.ViewHolder> {
         });
     }
 
-    public FilmsListAdapter(Context context, ArrayList<Film> films) {
-        mContext = context;
-        mFilms = films;
-    }
-
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -125,7 +129,7 @@ public class FilmsListAdapter extends Adapter<RecyclerView.ViewHolder> {
 
             if (viewType == VIEW_TYPE_FIRST_FILM) {
                 // First film only, specific top padding
-                int firstItemTopPadding = MeasuresConverter.dpToPx(mContext.getResources(), mFirstItemTopPadding);
+                int firstItemTopPadding = MeasuresConverter.dpToPx(mParentActivity.getResources(), mFirstItemTopPadding);
                 view.setPadding(view.getPaddingLeft(),
                         firstItemTopPadding,
                         view.getPaddingRight(),
@@ -142,6 +146,7 @@ public class FilmsListAdapter extends Adapter<RecyclerView.ViewHolder> {
         return itemViewHolder;
     }
 
+    @SuppressLint("StaticFieldLeak")
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof FilmViewHolder) {
@@ -157,6 +162,17 @@ public class FilmsListAdapter extends Adapter<RecyclerView.ViewHolder> {
             filmViewHolder.releaseDate.setText(releaseDateFormatted);
             String fullPosterUrl = AppConstants.TMDB_POSTER_BASE_URL + film.getPosterUrl();
             Picasso.get().load(fullPosterUrl).into(filmViewHolder.poster);
+
+            // Init the 'favorite' icon
+            new SetFavoriteIconTask(filmViewHolder.addFavorite, film, mParentActivity) {
+                @Override
+                protected int getFavoriteIconIdToDisplay(boolean isFilmSaved) {
+                    return isFilmSaved ?
+                            ICON_FILM_IN_FAVORITES :
+                            ICON_FILM_NOT_IN_FAVORITES;
+                }
+            }.execute(filmViewHolder.addFavorite, film, mParentActivity);
+
         } else if (holder instanceof LoadingViewHolder) {
             LoadingViewHolder loadingViewHolder = (LoadingViewHolder) holder;
             loadingViewHolder.progressBar.setIndeterminate(true);
@@ -208,11 +224,19 @@ public class FilmsListAdapter extends Adapter<RecyclerView.ViewHolder> {
         mFilms.add(null);
     }
 
+    /**
+     * Deletes all the films in the list of films.
+     */
+    public void clearAllFilms() {
+        mFilms.clear();
+    }
+
     class FilmViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         public ImageView poster;
         public TextView title;
         public TextView releaseDate;
+        private ImageButton addFavorite;
 
         public FilmViewHolder(View itemView) {
             super(itemView);
@@ -220,8 +244,35 @@ public class FilmsListAdapter extends Adapter<RecyclerView.ViewHolder> {
             poster = itemView.findViewById(R.id.film_item_poster);
             title = itemView.findViewById(R.id.film_item_title);
             releaseDate = itemView.findViewById(R.id.film_item_date);
+            addFavorite = itemView.findViewById(R.id.icon_add_to_favorite);
+
 
             itemView.setOnClickListener(this);
+
+            /*
+            Set OnClickListener for the "add to favorite" icon.
+
+            The movie clicked is added to the favorites movies in
+            local database if it is not saved in the db, and deletes
+            it from the db if it already exists in it.
+             */
+            addFavorite.setOnClickListener(new View.OnClickListener() {
+                @SuppressLint("StaticFieldLeak")
+                @Override
+                public void onClick(View v) {
+                    Log.d(TAG, "onClick addFavorite");
+
+                    Film filmClicked = mFilms.get(getAdapterPosition());
+                    new HandleFavoriteItemClickTask(addFavorite, filmClicked, mParentActivity) {
+                        @Override
+                        protected int getFavoriteIconIdToDisplay(boolean isFilmSaved) {
+                            return isFilmSaved ?
+                                    ICON_FILM_IN_FAVORITES :
+                                    ICON_FILM_NOT_IN_FAVORITES;
+                        }
+                    }.execute(addFavorite, filmClicked, mParentActivity);
+                }
+            });
         }
 
 
@@ -237,7 +288,7 @@ public class FilmsListAdapter extends Adapter<RecyclerView.ViewHolder> {
             int positionClicked = getAdapterPosition();
             Film filmClicked = mFilms.get(positionClicked);
 
-            Intent intentFilmDetails = new Intent(mContext, FilmDetailsActivity.class);
+            Intent intentFilmDetails = new Intent(mParentActivity, FilmDetailsActivity.class);
 
             // Transform the film object so that we can pass
             // it through intent
@@ -245,7 +296,7 @@ public class FilmsListAdapter extends Adapter<RecyclerView.ViewHolder> {
             intentFilmDetails.putExtra(FilmDetailsActivity.EXTRA_FILM_JSON, jsonFilm);
 
             // Start activity to display details of the film
-            mContext.startActivity(intentFilmDetails);
+            mParentActivity.startActivity(intentFilmDetails);
         }
     }
 

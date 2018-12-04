@@ -1,5 +1,6 @@
 package com.example.jules.mymovies.activity;
 
+import android.annotation.SuppressLint;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -13,11 +14,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.jules.mymovies.R;
-import com.example.jules.mymovies.model.DaoSession;
+import com.example.jules.mymovies.asynctask.HandleFavoriteItemClickTask;
+import com.example.jules.mymovies.asynctask.SetFavoriteIconTask;
 import com.example.jules.mymovies.model.Film;
-import com.example.jules.mymovies.model.FilmDao;
+
 import com.example.jules.mymovies.util.AppConstants;
-import com.example.jules.mymovies.util.FilmsDatabase;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerSupportFragment;
@@ -258,70 +259,19 @@ public class FilmDetailsActivity extends AppCompatActivity {
      * @param favoriteMenuItem a reference the favorite
      *                         menu item that user clicked.
      */
+    @SuppressLint("StaticFieldLeak")
     private void handleFavoriteItemClick(MenuItem favoriteMenuItem) {
-        new HandleFavoriteItemClickTask().execute(favoriteMenuItem);
-    }
-
-
-    private class SetFavoriteIconTask extends AsyncTask<Object, Void, Boolean> {
-
-        /**
-         * Reference to the 'favorite' menu item
-         * to be able to change its icon.
-         */
-        private MenuItem mFavoriteMenuItem;
-
-        @Override
-        protected Boolean doInBackground(Object[] args) {
-            mFavoriteMenuItem = (MenuItem) args[0];
-
-            DaoSession daoSession = FilmsDatabase.getDaoSession(FilmDetailsActivity.this);
-            FilmDao filmDao = daoSession.getFilmDao();
-            return filmDao.load(mFilm.getId()) != null;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean isFilmSaved) {
-            int newFavoriteItemIcon = getFavoriteIconIdToDisplay(isFilmSaved);
-            mFavoriteMenuItem.setIcon(newFavoriteItemIcon);
-        }
-    }
-
-
-    private class HandleFavoriteItemClickTask extends AsyncTask<Object, Void, Boolean> {
-
-        private MenuItem mFavoriteIcon;
-
-        @Override
-        protected Boolean doInBackground(Object[] args) {
-            mFavoriteIcon = (MenuItem) args[0];
-
-            DaoSession daoSession = FilmsDatabase.getDaoSession(FilmDetailsActivity.this);
-            FilmDao filmDao = daoSession.getFilmDao();
-            Film filmDisplayed = FilmDetailsActivity.this.mFilm;
-            Film queryResult = filmDao.load(filmDisplayed.getId());
-            boolean isFilmSaved = queryResult != null;
-            if (isFilmSaved) {
-                // Film already saved, delete it from database.
-                filmDao.deleteByKey(queryResult.getId());
-            } else {
-                // Film not in database, insert it.
-                filmDao.insert(mFilm);
+        new HandleFavoriteItemClickTask(favoriteMenuItem, mFilm, this) {
+            @Override
+            protected int getFavoriteIconIdToDisplay(boolean isFilmSaved) {
+                return isFilmSaved ?
+                        ICON_ID_FILM_IN_FAVORITES :
+                        ICON_ID_FILM_NOT_IN_FAVORITES;
             }
-
-            return !isFilmSaved;
-        }
-
-        @Override
-        protected void onPostExecute(Boolean isFilmSaved) {
-            int newIconId = getFavoriteIconIdToDisplay(isFilmSaved);
-            mFavoriteIcon.setIcon(newIconId);
-        }
+        }.execute(favoriteMenuItem, mFilm, this);
     }
 
-
-
-
+    @SuppressLint("StaticFieldLeak")
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.film_details_action_bar, menu);
@@ -329,23 +279,16 @@ public class FilmDetailsActivity extends AppCompatActivity {
         MenuItem favoriteItem = menu.findItem(R.id.item_favorite);
 
         // Init 'favorite' icon
-        new SetFavoriteIconTask().execute(favoriteItem);
+        new SetFavoriteIconTask(favoriteItem, mFilm, this) {
+            @Override
+            protected int getFavoriteIconIdToDisplay(boolean isFilmSaved) {
+                return isFilmSaved ?
+                        ICON_ID_FILM_IN_FAVORITES :
+                        ICON_ID_FILM_NOT_IN_FAVORITES;
+            }
+        }.execute(favoriteItem, mFilm, this);
 
         return true;
-    }
-
-    /**
-     * Returns the correct resource id for the
-     * favorite icon to display, depending on
-     * whether the film that we display is saved
-     * int he database or not.
-     * @param isFilmSaved true if the film is saved
-     *                    in the database, false otherwise.
-     */
-    private int getFavoriteIconIdToDisplay(boolean isFilmSaved) {
-        return (isFilmSaved) ?
-                ICON_ID_FILM_IN_FAVORITES :
-                ICON_ID_FILM_NOT_IN_FAVORITES;
     }
 
     /**

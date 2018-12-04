@@ -7,7 +7,6 @@ import com.example.jules.mymovies.model.DaoSession;
 
 import org.greenrobot.greendao.database.Database;
 import org.greenrobot.greendao.database.DatabaseOpenHelper;
-import org.greenrobot.greendao.identityscope.IdentityScopeType;
 
 public class FilmsDatabase {
 

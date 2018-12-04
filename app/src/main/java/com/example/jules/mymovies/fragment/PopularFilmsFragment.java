@@ -149,10 +149,15 @@ public class PopularFilmsFragment extends Fragment {
          call to setLayoutManager(new LinearLayoutManager(getContext()))
           */
         mFilmsList.setLayoutManager(new LinearLayoutManager(getContext()));
-        mFilmsAdapter = new FilmsListAdapter(getContext(), mFilmsList);
+        mFilmsAdapter = new FilmsListAdapter(getActivity(), mFilmsList);
         mFilmsAdapter.setFirstItemTopPadding(FIRST_LIST_ITEM_TOP_PADDING);
         mFilmsAdapter.setOnLoadMoreListener(mOnLoadMoreFilmsListener);
         mFilmsList.setAdapter(mFilmsAdapter);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
 
         // Fetch the first page of most popular films
         FetchPopularFilmsTask fetchPopularFilmsTask = new FetchPopularFilmsTask(this);
@@ -173,6 +178,11 @@ public class PopularFilmsFragment extends Fragment {
 
         FetchPopularFilmsTask(PopularFilmsFragment parentFragment) {
             mParentFragment = parentFragment;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            mParentFragment.showLoadingWidget();
         }
 
         @Override
@@ -236,6 +246,4 @@ public class PopularFilmsFragment extends Fragment {
         mProgressBar.setVisibility(View.GONE);
         mFilmsList.setVisibility(View.VISIBLE);
     }
-
-
 }
