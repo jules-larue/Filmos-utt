@@ -1,9 +1,9 @@
 package com.example.jules.mymovies.adapter;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,8 +11,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.example.jules.mymovies.R;
+import com.example.jules.mymovies.activity.FilmDetailsActivity;
 import com.example.jules.mymovies.model.Film;
 import com.example.jules.mymovies.util.AppConstants;
+import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 
 import java.text.DateFormat;
@@ -80,7 +82,7 @@ public class FavoriteFilmsAdapter extends RecyclerView.Adapter<FavoriteFilmsAdap
     }
 
 
-    class FavoriteFilmViewHolder extends RecyclerView.ViewHolder {
+    class FavoriteFilmViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
         private ImageView poster;
         private TextView title;
@@ -92,6 +94,27 @@ public class FavoriteFilmsAdapter extends RecyclerView.Adapter<FavoriteFilmsAdap
             poster = itemView.findViewById(R.id.favorite_film_item_poster);
             title = itemView.findViewById(R.id.favorite_film_item_title);
             releaseDate = itemView.findViewById(R.id.favorite_film_item_release_date);
+
+            itemView.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            /*
+            Show the activity to display
+            the film details.
+             */
+            Intent filmDetailsIntent = new Intent(mFavoriteFilmsActivity, FilmDetailsActivity.class);
+
+            Film filmClicked = mFavoriteFilms.get(getAdapterPosition());
+            String jsonFilm = new Gson().toJson(filmClicked);
+            filmDetailsIntent.putExtra(
+                    FilmDetailsActivity.EXTRA_FILM_JSON,
+                    jsonFilm
+            );
+
+            // Start activity
+            mFavoriteFilmsActivity.startActivity(filmDetailsIntent);
         }
     }
 }
