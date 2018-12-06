@@ -27,6 +27,7 @@ import com.example.jules.mymovies.util.MeasuresConverter;
 import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -155,7 +156,12 @@ public class FilmsListAdapter extends Adapter<RecyclerView.ViewHolder> {
 
             // Format release date
             SimpleDateFormat releaseDateFormat = new SimpleDateFormat(RELEASE_DATE_FORMAT, Locale.FRENCH);
-            String releaseDateFormatted = releaseDateFormat.format(film.getReleaseDate());
+            String releaseDateFormatted = "";
+            try {
+                releaseDateFormatted = releaseDateFormat.format(film.getReleaseDateAsDate());
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
 
             // Set view data
             filmViewHolder.title.setText(film.getTitle());

@@ -3,9 +3,7 @@ package com.example.jules.mymovies.util;
 import com.example.jules.mymovies.model.Film;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 
 import info.movito.themoviedbapi.model.MovieDb;
 import info.movito.themoviedbapi.model.core.MovieResultsPage;
@@ -27,22 +25,23 @@ public class MovieUtil {
         Film singleFilmObject;
         for (MovieDb movieDbResult : results) {
             try {
-                // Release date
-                SimpleDateFormat releaseDateFormat =
-                        new SimpleDateFormat(AppConstants.TMDB_RELEASE_DATE_FORMAT);
-                Date releaseDate = releaseDateFormat
-                        .parse(movieDbResult.getReleaseDate());
-
                 // Create the film object
+                //Log.d("FilmDate", "release date: " + movieDbResult.getReleaseDate());
                 singleFilmObject = new Film(
                         Long.valueOf(movieDbResult.getId()),
                         movieDbResult.getTitle(),
-                        releaseDate,
+                        movieDbResult.getReleaseDate(),
                         movieDbResult.getPosterPath());
 
                 filmObjects.add(singleFilmObject);
 
             } catch (ParseException e) {
+                /*
+                   We go here if there is an error in the release
+                   date format.
+                   That may happen if teh TMDB API suddenly decides
+                   to change the format of release date in their response...
+                 */
                 e.printStackTrace();
             }
         } // end for (MovieDb : results)

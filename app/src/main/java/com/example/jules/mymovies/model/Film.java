@@ -1,12 +1,16 @@
 package com.example.jules.mymovies.model;
 
+import com.example.jules.mymovies.util.AppConstants;
+
 import org.greenrobot.greendao.annotation.Entity;
+import org.greenrobot.greendao.annotation.Generated;
 import org.greenrobot.greendao.annotation.Id;
 import org.greenrobot.greendao.annotation.NotNull;
-
-import java.util.Date;
-import org.greenrobot.greendao.annotation.Generated;
 import org.greenrobot.greendao.annotation.Property;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * Represents the films that we
@@ -34,7 +38,7 @@ public class Film {
      * Release date of the film
      */
     @NotNull
-    private Date releaseDate;
+    private String releaseDate;
 
     /**
      * The remote URL of the poster
@@ -52,13 +56,23 @@ public class Film {
     /**
      * Builds a film from its title, release date and poster url.
      * @param title the title of the film
-     * @param releaseDate the release date of the film
+     * @param releaseDate the release date of the film, formatted
+     *                    with the {@link Film} date format specified
+     *                    in this class.
      * @param posterUrl the url of the film poster
+     * @throws ParseException if the releaseDate format doesn't match
+     *                        the release date format specified in
+     *                        this class (see RELEASE_DATE_FORMAT attribute).
      */
-    public Film(String title, Date releaseDate, String posterUrl) {
+    public Film(String title, String releaseDate, String posterUrl) throws ParseException {
         this.title = title;
-        this.releaseDate = releaseDate;
         this.posterUrl = posterUrl;
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat(AppConstants.TMDB_RELEASE_DATE_FORMAT);
+        // Throws a ParseException if date format is incorrect
+        dateFormat.parse(releaseDate);
+
+        this.releaseDate = releaseDate;
     }
 
     /**
@@ -68,22 +82,24 @@ public class Film {
      * @param releaseDate the release date of the film
      * @param posterUrl the url of the film poster
      * @param youtubeKey the youtube key of the film trailer
+     * @throws ParseException if the releaseDate format doesn't match
+     *                        the release date format specified in
+     *                        this class (see AppConstants.TMDB_RELEASE_DATE_FORMAT
+     *                        attribute).
      */
-    public Film(String title, Date releaseDate, String posterUrl, String youtubeKey) {
+    public Film(String title, String releaseDate, String posterUrl, String youtubeKey) throws ParseException {
         this(title, releaseDate, posterUrl);
         this.youtubeKey = youtubeKey;
     }
 
-    public Film(Long id, String title, Date releaseDate, String posterUrl) {
+    public Film(Long id, String title, String releaseDate, String posterUrl) throws ParseException {
+        this(title, releaseDate, posterUrl);
         this.id = id;
-        this.title = title;
-        this.releaseDate = releaseDate;
-        this.posterUrl = posterUrl;
     }
 
-    @Generated(hash = 1002153983)
-    public Film(Long id, @NotNull String title, @NotNull Date releaseDate,
-            @NotNull String posterUrl, String youtubeKey) {
+    @Generated(hash = 1452500125)
+    public Film(Long id, @NotNull String title, @NotNull String releaseDate, @NotNull String posterUrl,
+            String youtubeKey) {
         this.id = id;
         this.title = title;
         this.releaseDate = releaseDate;
@@ -111,12 +127,22 @@ public class Film {
         title = newTitle;
     }
 
-    public Date getReleaseDate() {
+    public String getReleaseDate() {
         return releaseDate;
     }
 
-    public void setReleaseDate(Date newReleaseDate) {
+    public void setReleaseDate(String newReleaseDate) {
         releaseDate = newReleaseDate;
+    }
+
+    /**
+     * Returns the release date of the film as a {@link Date} object.
+     * @throws ParseException if the date format of the release date attribute
+     * does not match the TMDB release date format stored in {@link AppConstants}.
+     */
+    public Date getReleaseDateAsDate() throws ParseException {
+        SimpleDateFormat dateFormat = new SimpleDateFormat(AppConstants.TMDB_RELEASE_DATE_FORMAT);
+        return dateFormat.parse(releaseDate);
     }
 
     public String getPosterUrl() {

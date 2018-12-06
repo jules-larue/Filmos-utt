@@ -17,7 +17,6 @@ import com.example.jules.mymovies.R;
 import com.example.jules.mymovies.asynctask.HandleFavoriteItemClickTask;
 import com.example.jules.mymovies.asynctask.SetFavoriteIconTask;
 import com.example.jules.mymovies.model.Film;
-
 import com.example.jules.mymovies.util.AppConstants;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
@@ -26,6 +25,7 @@ import com.google.gson.Gson;
 import com.makeramen.roundedimageview.RoundedImageView;
 import com.squareup.picasso.Picasso;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Objects;
@@ -127,8 +127,13 @@ public class FilmDetailsActivity extends AppCompatActivity {
 
         SimpleDateFormat releaseDateFormat =
                 new SimpleDateFormat(RELEASE_DATE_FORMAT);
-        String formattedReleaseDate = releaseDateFormat.format(mFilm.getReleaseDate());
-        mTvReleaseDate.setText(formattedReleaseDate);
+        String formattedReleaseDate = null;
+        try {
+            formattedReleaseDate = releaseDateFormat.format(mFilm.getReleaseDateAsDate());
+            mTvReleaseDate.setText(formattedReleaseDate);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 
         String posterUrl = AppConstants.TMDB_POSTER_BASE_URL + mFilm.getPosterUrl();
         Picasso.get().load(posterUrl).into(mRivPoster);
