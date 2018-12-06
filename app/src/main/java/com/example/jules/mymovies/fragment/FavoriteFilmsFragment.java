@@ -11,6 +11,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.jules.mymovies.R;
@@ -42,6 +43,12 @@ public class FavoriteFilmsFragment extends Fragment {
      */
     private FavoriteFilmsAdapter mFilmsAdapter;
 
+    /**
+     * Progress bar shown when favorite  films are being
+     * fetched from local database.
+     */
+    private ProgressBar mProgress;
+
     private static final int NUMBER_COLUMNS = 2;
 
     @Override
@@ -55,15 +62,20 @@ public class FavoriteFilmsFragment extends Fragment {
 
         mFavoriteFilmsList = Objects.requireNonNull(getView()).findViewById(R.id.favorite_films_fragment_list);
         mNoFavoriteFilmsText = getView().findViewById(R.id.tv_no_favorite_movies);
+        mProgress = getView().findViewById(R.id.favorite_films_fragment_progress);
 
         // We display the in a Grid Layout with 2 columns
         GridLayoutManager listLayoutManager = new GridLayoutManager(getActivity(), NUMBER_COLUMNS);
         mFavoriteFilmsList.setLayoutManager(listLayoutManager);
-
-        new LoadFavoriteFilmsTask().execute(getContext());
     }
 
     private class LoadFavoriteFilmsTask extends AsyncTask<Object, Void, List<Film>> {
+
+        @Override
+        protected void onPreExecute() {
+            // We show progress before any task starts
+            showProgress();
+        }
 
         @Override
         protected List<Film> doInBackground(Object... args) {
@@ -106,6 +118,7 @@ public class FavoriteFilmsFragment extends Fragment {
      * and hide the message for no films.
      */
     private void showFilms() {
+        mProgress.setVisibility(View.GONE);
         mFavoriteFilmsList.setVisibility(View.VISIBLE);
         mNoFavoriteFilmsText.setVisibility(View.GONE);
     }
@@ -115,7 +128,26 @@ public class FavoriteFilmsFragment extends Fragment {
      * and hide the list of films.
      */
     private void showNoFilmsMessage() {
+        mProgress.setVisibility(View.GONE);
         mFavoriteFilmsList.setVisibility(View.GONE);
         mNoFavoriteFilmsText.setVisibility(View.VISIBLE);
+    }
+
+    /**
+     * Shows progress bar and hides any other view.
+     */
+    private void showProgress() {
+        // Show progress
+        mProgress.setVisibility(View.VISIBLE);
+
+        // Hide other view
+        mFavoriteFilmsList.setVisibility(View.GONE);
+        mNoFavoriteFilmsText.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        new LoadFavoriteFilmsTask().execute(getContext());
     }
 }

@@ -9,7 +9,8 @@
     <android.support.v7.widget.RecyclerView
         android:id="@+id/favorite_films_fragment_list"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:visibility="gone">
     </android.support.v7.widget.RecyclerView>
 
     <TextView
@@ -20,6 +21,13 @@
         android:gravity="center"
         android:layout_marginLeft="@dimen/activity_horizontal_margin"
         android:layout_marginRight="@dimen/activity_horizontal_margin"
-        android:text="@string/no_favorite_movies"/>
+        android:text="@string/no_favorite_movies"
+        android:visibility="gone"/>
+
+    <ProgressBar
+        android:id="@+id/favorite_films_fragment_progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"/>
 
 </FrameLayout>
