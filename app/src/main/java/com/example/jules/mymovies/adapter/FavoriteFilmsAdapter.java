@@ -113,6 +113,12 @@ public class FavoriteFilmsAdapter extends RecyclerView.Adapter<FavoriteFilmsAdap
                     jsonFilm
             );
 
+            // Film from this adapter arr all in favorites local database
+            filmDetailsIntent.putExtra(
+                    FilmDetailsActivity.EXTRA_IS_IN_FAVORITES,
+                    true
+            );
+
             // Start activity
             mFavoriteFilmsActivity.startActivity(filmDetailsIntent);
         }
