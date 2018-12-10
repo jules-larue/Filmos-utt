@@ -15,7 +15,6 @@ import android.widget.Toast;
 
 import com.example.jules.mymovies.R;
 import com.example.jules.mymovies.asynctask.HandleFavoriteItemClickTask;
-import com.example.jules.mymovies.asynctask.SetFavoriteIconTask;
 import com.example.jules.mymovies.model.Film;
 import com.example.jules.mymovies.util.AppConstants;
 import com.google.android.youtube.player.YouTubeInitializationResult;
@@ -87,6 +86,12 @@ public class FilmDetailsActivity extends AppCompatActivity {
     public static final String EXTRA_FILM_JSON = "film";
 
     /**
+     * Extra parameter for a boolean that indicates whether
+     * the film is in favorites (local database) or not.
+     */
+    public static final String EXTRA_IS_IN_FAVORITES = "isFavorite";
+
+    /**
      * Resource id of the icon to display when
      * the film is saved in local database.
      */
@@ -117,9 +122,8 @@ public class FilmDetailsActivity extends AppCompatActivity {
         mTvMessageNoTrailer = findViewById(R.id.activity_film_details_tv_no_trailer);
 
         // Retrieve film from intent extras
-        String jsonFilm = Objects.requireNonNull(getIntent()
-                .getExtras())
-                .getString(EXTRA_FILM_JSON);
+        Bundle filmExtras = getIntent().getExtras();
+        String jsonFilm = Objects.requireNonNull(filmExtras).getString(EXTRA_FILM_JSON);
         mFilm = new Gson().fromJson(jsonFilm, Film.class);
 
         // Bind data to view
@@ -284,14 +288,14 @@ public class FilmDetailsActivity extends AppCompatActivity {
         MenuItem favoriteItem = menu.findItem(R.id.item_favorite);
 
         // Init 'favorite' icon
-        new SetFavoriteIconTask(favoriteItem, mFilm, this) {
-            @Override
-            protected int getFavoriteIconIdToDisplay(boolean isFilmSaved) {
-                return isFilmSaved ?
-                        ICON_ID_FILM_IN_FAVORITES :
-                        ICON_ID_FILM_NOT_IN_FAVORITES;
-            }
-        }.execute(favoriteItem, mFilm, this);
+        boolean isFavorite = Objects.requireNonNull(getIntent()
+                .getExtras())
+                .getBoolean(EXTRA_IS_IN_FAVORITES);
+        if (isFavorite) {
+            favoriteItem.setIcon(ICON_ID_FILM_IN_FAVORITES);
+        } else {
+            favoriteItem.setIcon(ICON_ID_FILM_NOT_IN_FAVORITES);
+        }
 
         return true;
     }

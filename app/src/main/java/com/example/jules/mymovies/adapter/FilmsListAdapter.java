@@ -21,8 +21,11 @@ import com.example.jules.mymovies.activity.FilmDetailsActivity;
 import com.example.jules.mymovies.asynctask.HandleFavoriteItemClickTask;
 import com.example.jules.mymovies.asynctask.SetFavoriteIconTask;
 import com.example.jules.mymovies.listener.OnLoadMoreListener;
+import com.example.jules.mymovies.model.DaoSession;
 import com.example.jules.mymovies.model.Film;
+import com.example.jules.mymovies.model.FilmDao;
 import com.example.jules.mymovies.util.AppConstants;
+import com.example.jules.mymovies.util.FilmsDatabase;
 import com.example.jules.mymovies.util.MeasuresConverter;
 import com.google.gson.Gson;
 import com.squareup.picasso.Picasso;
@@ -292,14 +295,37 @@ public class FilmsListAdapter extends Adapter<RecyclerView.ViewHolder> {
 
             // Retrieve the film selected
             int positionClicked = getAdapterPosition();
-            Film filmClicked = mFilms.get(positionClicked);
+            final Film filmClicked = mFilms.get(positionClicked);
 
-            Intent intentFilmDetails = new Intent(mParentActivity, FilmDetailsActivity.class);
+            final Intent intentFilmDetails = new Intent(mParentActivity, FilmDetailsActivity.class);
 
             // Transform the film object so that we can pass
             // it through intent
             String jsonFilm = new Gson().toJson(filmClicked);
             intentFilmDetails.putExtra(FilmDetailsActivity.EXTRA_FILM_JSON, jsonFilm);
+            intentFilmDetails.putExtra(FilmDetailsActivity.EXTRA_IS_IN_FAVORITES, false);
+
+            // Check in database if the film is in favorite
+            // We do the job in a background thread to not affect UI performance
+            Thread checkFavoriteTask = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    DaoSession daoSession = FilmsDatabase.getDaoSession(mParentActivity);
+                    FilmDao filmDao = daoSession.getFilmDao();
+                    Film queryResult = filmDao.load(filmClicked.getId());
+
+                    // Film is in favorite if query result is NOT null
+                    boolean isFavorite = !(queryResult == null);
+                    intentFilmDetails.putExtra(FilmDetailsActivity.EXTRA_IS_IN_FAVORITES, isFavorite);
+                }
+            });
+            checkFavoriteTask.start();
+            try {
+                // Wait that task is finished
+                checkFavoriteTask.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
             // Start activity to display details of the film
             mParentActivity.startActivity(intentFilmDetails);
