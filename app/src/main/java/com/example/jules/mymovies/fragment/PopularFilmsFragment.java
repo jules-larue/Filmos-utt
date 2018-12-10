@@ -179,6 +179,9 @@ public class PopularFilmsFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
+        // Show the progress
+        showLoadingWidget();
+
         // Fetch the first page of most popular films
         FetchPopularFilmsTask fetchPopularFilmsTask = new FetchPopularFilmsTask(this);
         fetchPopularFilmsTask.execute(1);
@@ -198,11 +201,6 @@ public class PopularFilmsFragment extends Fragment {
 
         FetchPopularFilmsTask(PopularFilmsFragment parentFragment) {
             mParentFragment = parentFragment;
-        }
-
-        @Override
-        protected void onPreExecute() {
-            mParentFragment.showLoadingWidget();
         }
 
         @Override
@@ -268,6 +266,7 @@ public class PopularFilmsFragment extends Fragment {
             } else {
                 // Results are ok
                 onFilmsFetched(movieDbs);
+                showFilmsList();
             }
         }
 
