@@ -1,16 +1,20 @@
 package com.example.jules.mymovies.fragment;
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -19,6 +23,7 @@ import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.example.jules.mymovies.R;
 import com.example.jules.mymovies.activity.QueryResultsActivity;
 import com.example.jules.mymovies.adapter.FilmsListAdapter;
+import com.example.jules.mymovies.dialog.ConnectionProblemDialog;
 import com.example.jules.mymovies.listener.OnLoadMoreListener;
 import com.example.jules.mymovies.model.Film;
 import com.example.jules.mymovies.util.AppConstants;
@@ -29,6 +34,7 @@ import java.util.Objects;
 
 import info.movito.themoviedbapi.TmdbApi;
 import info.movito.themoviedbapi.model.core.MovieResultsPage;
+import info.movito.themoviedbapi.tools.MovieDbException;
 
 
 /**
@@ -53,6 +59,11 @@ public class PopularFilmsFragment extends Fragment {
      * The progress bar when films are being fetched
      */
     private ProgressBar mProgressBar;
+
+    /**
+     * Button to retry to fetch the popular films.
+     */
+    private Button mBtnRetry;
 
     /**
      * Listener to handle endless scrolling
@@ -88,6 +99,7 @@ public class PopularFilmsFragment extends Fragment {
         mFilmsList = Objects.requireNonNull(getView()).findViewById(R.id.popular_films_list);
         mSearchBar = getView().findViewById(R.id.search_bar);
         mProgressBar = getView().findViewById(R.id.popular_films_progress_bar);
+        mBtnRetry = getView().findViewById(R.id.popular_films_btn_retry);
 
         // Set search bar to appear over any other view
         mSearchBar.bringToFront();
@@ -143,6 +155,14 @@ public class PopularFilmsFragment extends Fragment {
             }
         };
 
+        // Init retry button
+        mBtnRetry.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new FetchPopularFilmsTask(PopularFilmsFragment.this).execute();
+            }
+        });
+
         /*
          Adapter initialization.
          /!\ Create instance of FilmsListAdapter after
@@ -164,7 +184,7 @@ public class PopularFilmsFragment extends Fragment {
         fetchPopularFilmsTask.execute(1);
     }
 
-    private static class FetchPopularFilmsTask extends AsyncTask<Integer, Void, MovieResultsPage> {
+    private class FetchPopularFilmsTask extends AsyncTask<Integer, Void, MovieResultsPage> {
 
         /**
          * This task is launched from that fragment
@@ -188,30 +208,67 @@ public class PopularFilmsFragment extends Fragment {
         @Override
         protected MovieResultsPage doInBackground(Integer... args) {
             // Get the page number to fetch
-            int pageNumber = args[0];
-
-            if (mApi == null) {
-                /*
-                Not in constructor because it uses network
-                so we must place this statement in doInBackground
-                which is not run on Main UI Thread.
-                 */
-                mApi = new TmdbApi(AppConstants.TMDB_API_KEY);
+            int pageNumber;
+            try {
+                pageNumber = args[0];
+            } catch (ArrayIndexOutOfBoundsException e) {
+                // No page number specified, default should be 1
+                pageNumber = 1;
             }
 
-            /*
-             Get the popular movies from API. Here we get movies in french.
-             The result is stored as the last page of results fetched.
-              */
-            mParentFragment.mLastPageDisplayed = mApi.getMovies()
-                    .getPopularMovies(AppConstants.TMDB_PARAMETER_LANGUAGE_FRENCH, pageNumber);
+            if (mApi == null) {
+
+                try {
+                    /*
+                     Create a client instance to connect
+                     to the remote API.
+                     */
+                    mApi = new TmdbApi(AppConstants.TMDB_API_KEY);
+
+                    /*
+                     Get the popular movies from API. Here we get movies in french.
+                     The result is stored as the last page of results fetched.
+                    */
+                    mParentFragment.mLastPageDisplayed = mApi.getMovies()
+                            .getPopularMovies(AppConstants.TMDB_PARAMETER_LANGUAGE_FRENCH, pageNumber);
+                } catch (MovieDbException e) {
+                    /*
+                    A MovieDbException is thrown if there is no
+                    internet connection.
+                     */
+                    return null;
+                }
+            }
 
             return mParentFragment.mLastPageDisplayed;
         }
 
+        /**
+         * Callback method called when an internet connection error occurs
+         * while trying to communicate with the remote TMDB API.
+         * It shows a dialog to the user, with a message to inform
+         * him about the problem.
+         */
+        private void handleNoInternetConnection() {
+            // Update UI
+            showRetryButton();
+
+            // SHow a dialog informing about the problem
+            Context context = mParentFragment.getContext();
+            ConnectionProblemDialog alertDialog =
+                    new ConnectionProblemDialog(Objects.requireNonNull(context));
+            alertDialog.show();
+        }
+
         @Override
         protected void onPostExecute(MovieResultsPage movieDbs) {
-            onFilmsFetched(movieDbs);
+            if (movieDbs == null) {
+                // Internet connection problem
+                handleNoInternetConnection();
+            } else {
+                // Results are ok
+                onFilmsFetched(movieDbs);
+            }
         }
 
         /**
@@ -222,7 +279,7 @@ public class PopularFilmsFragment extends Fragment {
          * @param resultsFetched the results that have just been fetched
          */
         private void onFilmsFetched(MovieResultsPage resultsFetched) {
-            mParentFragment.hideLoadingWidget();
+            mParentFragment.showFilmsList();
 
             /*
              We build a list of Film objects from
@@ -240,10 +297,18 @@ public class PopularFilmsFragment extends Fragment {
     public void showLoadingWidget() {
         mProgressBar.setVisibility(View.VISIBLE);
         mFilmsList.setVisibility(View.GONE);
+        mBtnRetry.setVisibility(View.GONE);
     }
 
-    public void hideLoadingWidget() {
+    public void showFilmsList() {
         mProgressBar.setVisibility(View.GONE);
         mFilmsList.setVisibility(View.VISIBLE);
+        mBtnRetry.setVisibility(View.GONE);
+    }
+
+    public void showRetryButton() {
+        mProgressBar.setVisibility(View.GONE);
+        mFilmsList.setVisibility(View.GONE);
+        mBtnRetry.setVisibility(View.VISIBLE);
     }
 }

@@ -15,5 +15,9 @@
     <string name="menu_item_favorite_title">Favoris</string>
     <string name="snackbar_text_film_add_to_favorites">Film ajouté aux favoris.</string>
     <string name="snackbar_text_film_deleted_from_favorites">Film supprimé des favoris.</string>
+    <string name="dialog_connection_problem_title">Problème de connexion</string>
+    <string name="dialog_connection_problem_message">Un problème es survenu lors de la récupération des films. Veuillez vérifier votre connexion Internet.</string>
+    <string name="dialog_connection_problem_ok_btn">OK</string>
+    <string name="btn_retry">Réessayer</string>
 
 </resources>
