@@ -45,6 +45,12 @@ public class QueryResultsActivity extends AppCompatActivity {
     private MovieResultsPage mLastPageFetched;
 
     /**
+     * Top padding value (in dp) for the first films RecyclerView
+     * item to be displayed under the FloatingSearchView nicely.
+     */
+    public static final int FIRST_LIST_ITEM_TOP_PADDING = 16;
+
+    /**
      * Extra intent parameter to pass the
      * user query to this activity.
      */
@@ -92,6 +98,9 @@ public class QueryResultsActivity extends AppCompatActivity {
         mFilmsAdapter = new FilmsListAdapter(this, mRvResults);
         mFilmsAdapter.setOnLoadMoreListener(mOnLoadMoreResultsListener);
         mRvResults.setAdapter(mFilmsAdapter);
+
+        // Add top padding
+        mFilmsAdapter.setFirstItemTopPadding(FIRST_LIST_ITEM_TOP_PADDING);
 
         // Fetch first page of results
         FetchResultsTask fetchResultsTask = new FetchResultsTask();
