@@ -84,10 +84,10 @@ public class FilmsListAdapter extends Adapter<RecyclerView.ViewHolder> {
      */
     private static final int VIEW_TYPE_LOADING = 2;
 
-    private static final int ICON_FILM_IN_FAVORITES = R.drawable.baseline_favorite_black_36;
+    private static final int ICON_FILM_IN_FAVORITES = R.drawable.baseline_favorite_black_24;
 
 
-    private static final int ICON_FILM_NOT_IN_FAVORITES = R.drawable.baseline_favorite_border_black_36;
+    private static final int ICON_FILM_NOT_IN_FAVORITES = R.drawable.baseline_favorite_border_black_24;
 
     private OnLoadMoreListener mOnLoadMoreListener;
 
