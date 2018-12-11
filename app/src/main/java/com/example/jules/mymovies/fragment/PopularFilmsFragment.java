@@ -149,7 +149,7 @@ public class PopularFilmsFragment extends Fragment {
                 // Check we are NOT at the last page
                 if (nextPage <= totalPages) {
                     // Fetch the next page of films
-                    FetchPopularFilmsTask fetchPopularFilmsTask = new FetchPopularFilmsTask((PopularFilmsFragment.this));
+                    FetchPopularFilmsTask fetchPopularFilmsTask = new FetchPopularFilmsTask(PopularFilmsFragment.this, false);
                     fetchPopularFilmsTask.execute(nextPage);
                 }
             }
@@ -159,7 +159,7 @@ public class PopularFilmsFragment extends Fragment {
         mBtnRetry.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new FetchPopularFilmsTask(PopularFilmsFragment.this).execute();
+                new FetchPopularFilmsTask(PopularFilmsFragment.this, true).execute();
             }
         });
 
@@ -183,7 +183,7 @@ public class PopularFilmsFragment extends Fragment {
         showLoadingWidget();
 
         // Fetch the first page of most popular films
-        FetchPopularFilmsTask fetchPopularFilmsTask = new FetchPopularFilmsTask(this);
+        FetchPopularFilmsTask fetchPopularFilmsTask = new FetchPopularFilmsTask(this, true);
         fetchPopularFilmsTask.execute(1);
     }
 
@@ -199,8 +199,24 @@ public class PopularFilmsFragment extends Fragment {
          */
         private TmdbApi mApi;
 
-        FetchPopularFilmsTask(PopularFilmsFragment parentFragment) {
+        /**
+         * Whether or not we whould show the progress
+         * bar in the center of the screen.
+         * It should be false when when scroll to load more,
+         * in order to not hide the list while scrolling.
+         */
+        private boolean mShowProgress;
+
+        FetchPopularFilmsTask(PopularFilmsFragment parentFragment, boolean showProgress) {
             mParentFragment = parentFragment;
+            mShowProgress = showProgress;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            if (mShowProgress) {
+                showLoadingWidget();
+            }
         }
 
         @Override
