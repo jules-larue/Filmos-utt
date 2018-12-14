@@ -31,6 +31,7 @@ import java.util.Objects;
 
 import info.movito.themoviedbapi.TmdbApi;
 import info.movito.themoviedbapi.model.Video;
+import info.movito.themoviedbapi.tools.MovieDbException;
 
 
 public class FilmDetailsActivity extends AppCompatActivity {
@@ -205,7 +206,12 @@ public class FilmDetailsActivity extends AppCompatActivity {
 
         @Override
         protected String doInBackground(Void... voids) {
-            return getYoutubeKey(Math.toIntExact(mFilm.getId()));
+            try {
+                return getYoutubeKey(Math.toIntExact(mFilm.getId()));
+            } catch (MovieDbException e) {
+                e.printStackTrace();
+                return null;
+            }
         }
 
         @Override
@@ -241,7 +247,7 @@ public class FilmDetailsActivity extends AppCompatActivity {
          *         don't find any YouTube trailer.
          */
         @Nullable
-        private String getYoutubeKey(int filmId) {
+        private String getYoutubeKey(int filmId) throws MovieDbException {
             TmdbApi api = new TmdbApi(AppConstants.TMDB_API_KEY);
             List<Video> trailers = api.getMovies().getVideos(filmId,
                     AppConstants.TMDB_PARAMETER_LANGUAGE_FRENCH);
