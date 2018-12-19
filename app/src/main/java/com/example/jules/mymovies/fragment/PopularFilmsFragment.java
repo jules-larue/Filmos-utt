@@ -1,14 +1,12 @@
 package com.example.jules.mymovies.fragment;
 
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -20,6 +18,7 @@ import android.widget.Toast;
 
 import com.arlib.floatingsearchview.FloatingSearchView;
 import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
+import com.example.jules.mymovies.AnalyticsApplication;
 import com.example.jules.mymovies.R;
 import com.example.jules.mymovies.activity.QueryResultsActivity;
 import com.example.jules.mymovies.adapter.FilmsListAdapter;
@@ -28,6 +27,8 @@ import com.example.jules.mymovies.listener.OnLoadMoreListener;
 import com.example.jules.mymovies.model.Film;
 import com.example.jules.mymovies.util.AppConstants;
 import com.example.jules.mymovies.util.MovieUtil;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -82,6 +83,11 @@ public class PopularFilmsFragment extends Fragment {
     private FilmsListAdapter mFilmsAdapter;
 
     /**
+     * Tracker for Google Analytics
+     */
+    private Tracker mTracker;
+
+    /**
      * Top padding value (in dp) for the first films RecyclerView
      * item to be displayed under the FloatingSearchView nicely.
      */
@@ -95,6 +101,10 @@ public class PopularFilmsFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        // Initialize tracking
+        AnalyticsApplication application = (AnalyticsApplication) Objects.requireNonNull(getActivity()).getApplication();
+        mTracker = application.getDefaultTracker();
 
         mFilmsList = Objects.requireNonNull(getView()).findViewById(R.id.popular_films_list);
         mSearchBar = getView().findViewById(R.id.search_bar);
@@ -185,6 +195,14 @@ public class PopularFilmsFragment extends Fragment {
         // Fetch the first page of most popular films
         FetchPopularFilmsTask fetchPopularFilmsTask = new FetchPopularFilmsTask(this, true);
         fetchPopularFilmsTask.execute(1);
+
+        // Initiate tracking
+        track();
+    }
+
+    private void track() {
+        mTracker.setScreenName(AppConstants.Analytics.POPULAR_MOVIES);
+        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
     }
 
     private class FetchPopularFilmsTask extends AsyncTask<Integer, Void, MovieResultsPage> {

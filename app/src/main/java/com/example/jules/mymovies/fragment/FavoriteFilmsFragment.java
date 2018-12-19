@@ -14,12 +14,16 @@ import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.example.jules.mymovies.AnalyticsApplication;
 import com.example.jules.mymovies.R;
 import com.example.jules.mymovies.adapter.FavoriteFilmsAdapter;
 import com.example.jules.mymovies.model.DaoSession;
 import com.example.jules.mymovies.model.Film;
 import com.example.jules.mymovies.model.FilmDao;
+import com.example.jules.mymovies.util.AppConstants;
 import com.example.jules.mymovies.util.FilmsDatabase;
+import com.google.android.gms.analytics.HitBuilders;
+import com.google.android.gms.analytics.Tracker;
 
 import java.util.List;
 import java.util.Objects;
@@ -49,6 +53,11 @@ public class FavoriteFilmsFragment extends Fragment {
      */
     private ProgressBar mProgress;
 
+    /**
+     * Tracker for Google Analytics
+     */
+    private Tracker mTracker;
+
     private static final int NUMBER_COLUMNS = 2;
 
     @Override
@@ -59,6 +68,10 @@ public class FavoriteFilmsFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+
+        // Initialize tracking
+        AnalyticsApplication application = (AnalyticsApplication) Objects.requireNonNull(getActivity()).getApplication();
+        mTracker = application.getDefaultTracker();
 
         mFavoriteFilmsList = Objects.requireNonNull(getView()).findViewById(R.id.favorite_films_fragment_list);
         mNoFavoriteFilmsText = getView().findViewById(R.id.tv_no_favorite_movies);
@@ -149,5 +162,10 @@ public class FavoriteFilmsFragment extends Fragment {
     public void onResume() {
         super.onResume();
         new LoadFavoriteFilmsTask().execute(getContext());
+    }
+
+    private void track() {
+        mTracker.setScreenName(AppConstants.Analytics.POPULAR_MOVIES);
+        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
     }
 }
