@@ -27,8 +27,7 @@ import com.example.jules.mymovies.listener.OnLoadMoreListener;
 import com.example.jules.mymovies.model.Film;
 import com.example.jules.mymovies.util.AppConstants;
 import com.example.jules.mymovies.util.MovieUtil;
-import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
+import com.example.jules.mymovies.util.PreferenceUtils;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -83,11 +82,6 @@ public class PopularFilmsFragment extends Fragment {
     private FilmsListAdapter mFilmsAdapter;
 
     /**
-     * Tracker for Google Analytics
-     */
-    private Tracker mTracker;
-
-    /**
      * Top padding value (in dp) for the first films RecyclerView
      * item to be displayed under the FloatingSearchView nicely.
      */
@@ -101,10 +95,6 @@ public class PopularFilmsFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
-        // Initialize tracking
-        AnalyticsApplication application = (AnalyticsApplication) Objects.requireNonNull(getActivity()).getApplication();
-        mTracker = application.getDefaultTracker();
 
         mFilmsList = Objects.requireNonNull(getView()).findViewById(R.id.popular_films_list);
         mSearchBar = getView().findViewById(R.id.search_bar);
@@ -197,12 +187,15 @@ public class PopularFilmsFragment extends Fragment {
         fetchPopularFilmsTask.execute(1);
 
         // Initiate tracking
-        track();
+        if (PreferenceUtils.checkUserConsent(Objects.requireNonNull(getContext()))) {
+            track();
+        }
     }
 
     private void track() {
-        mTracker.setScreenName(AppConstants.Analytics.POPULAR_MOVIES);
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+
+        AnalyticsApplication application = (AnalyticsApplication) Objects.requireNonNull(getActivity()).getApplication();
+        application.sendSreenTracking(AppConstants.Analytics.POPULAR_MOVIES);
     }
 
     private class FetchPopularFilmsTask extends AsyncTask<Integer, Void, MovieResultsPage> {

@@ -18,8 +18,7 @@ import com.example.jules.mymovies.R;
 import com.example.jules.mymovies.asynctask.HandleFavoriteItemClickTask;
 import com.example.jules.mymovies.model.Film;
 import com.example.jules.mymovies.util.AppConstants;
-import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
+import com.example.jules.mymovies.util.PreferenceUtils;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerSupportFragment;
@@ -78,11 +77,6 @@ public class FilmDetailsActivity extends AppCompatActivity {
     private TextView mTvMessageNoTrailer;
 
     /**
-     * Tracker for Google Analytics
-     */
-    private Tracker mTracker;
-
-    /**
      * Date format to display for the release date
      * of the film
      */
@@ -121,10 +115,6 @@ public class FilmDetailsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_film_details);
-
-        // Initialize tracking
-        AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        mTracker = application.getDefaultTracker();
 
         mRivPoster = findViewById(R.id.activity_film_details_poster);
         mTvTitle = findViewById(R.id.activity_film_details_title);
@@ -349,10 +339,13 @@ public class FilmDetailsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (PreferenceUtils.checkUserConsent(this)) {
+            track();
+        }
     }
 
     private void track() {
-        mTracker.setScreenName(AppConstants.Analytics.POPULAR_MOVIES);
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+        AnalyticsApplication application = (AnalyticsApplication) getApplication();
+        application.sendSreenTracking(AppConstants.Analytics.MOVIE_DETAILS);
     }
 }

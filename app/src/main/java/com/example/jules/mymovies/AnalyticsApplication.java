@@ -19,6 +19,7 @@ package com.example.jules.mymovies;
 import android.app.Application;
 
 import com.google.android.gms.analytics.GoogleAnalytics;
+import com.google.android.gms.analytics.HitBuilders;
 import com.google.android.gms.analytics.Tracker;
 
 /**
@@ -48,5 +49,11 @@ public class AnalyticsApplication extends Application {
         }
 
         return sTracker;
+    }
+
+    public void sendSreenTracking(String screenName) {
+        Tracker tracker = getDefaultTracker();
+        tracker.setScreenName(screenName);
+        tracker.send(new HitBuilders.ScreenViewBuilder().build());
     }
 }

@@ -20,4 +20,13 @@
     <string name="dialog_connection_problem_ok_btn">OK</string>
     <string name="btn_retry">Réessayer</string>
 
+    <string name="user_consent_dialog_title">Consentement d\'analyse des données</string>
+    <string name="user_consent_dialog_message">
+        Filmos enregistre des données liées à votre appareil et votre utilisation de
+        l\'application. En acceptant, vous confirmez que nous pouvons utiliser ces
+        informations pour améliorer votre expérience utilisateur.
+    </string>
+    <string name="yes">Oui</string>
+    <string name="no">Non</string>
+
 </resources>

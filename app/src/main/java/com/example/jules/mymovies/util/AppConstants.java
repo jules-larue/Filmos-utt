@@ -31,6 +31,11 @@ public class AppConstants {
      */
     public static final String TMDB_POSTER_BASE_URL = "http://image.tmdb.org/t/p/w185/";
 
+    public static final String PREFERENCES_NAME = "appPreferences";
+
+
+    public static final String PREFERENCES_USER_CONSENT = "userConsent";
+
     /**
      * Defines constants related to the application
      * analytics, such as tags.

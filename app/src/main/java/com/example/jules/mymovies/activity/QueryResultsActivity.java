@@ -18,8 +18,7 @@ import com.example.jules.mymovies.listener.OnLoadMoreListener;
 import com.example.jules.mymovies.model.Film;
 import com.example.jules.mymovies.util.AppConstants;
 import com.example.jules.mymovies.util.MovieUtil;
-import com.google.android.gms.analytics.HitBuilders;
-import com.google.android.gms.analytics.Tracker;
+import com.example.jules.mymovies.util.PreferenceUtils;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -56,11 +55,6 @@ public class QueryResultsActivity extends AppCompatActivity {
     private Button mBtnRetry;
 
     /**
-     * Tracker for Google Analytics
-     */
-    private Tracker mTracker;
-
-    /**
      * Top padding value (in dp) for the first films RecyclerView
      * item to be displayed under the FloatingSearchView nicely.
      */
@@ -76,10 +70,6 @@ public class QueryResultsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_films_results);
-
-        // Initialize tracking
-        AnalyticsApplication application = (AnalyticsApplication) getApplication();
-        mTracker = application.getDefaultTracker();
 
         mRvResults = findViewById(R.id.activity_film_results_list);
         mProgressBar = findViewById(R.id.activity_film_results_progress_bar);
@@ -295,10 +285,13 @@ public class QueryResultsActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        if (PreferenceUtils.checkUserConsent(this)) {
+            track();
+        }
     }
 
     private void track() {
-        mTracker.setScreenName(AppConstants.Analytics.POPULAR_MOVIES);
-        mTracker.send(new HitBuilders.ScreenViewBuilder().build());
+        AnalyticsApplication application = (AnalyticsApplication) getApplication();
+        application.sendSreenTracking(AppConstants.Analytics.SEARCH_MOVIES);
     }
 }
